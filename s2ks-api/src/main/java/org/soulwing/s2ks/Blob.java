@@ -30,6 +30,18 @@ import java.io.OutputStream;
 public interface Blob {
 
   /**
+   * Gets the size of this blob.
+   * @return blob size in bytes
+   */
+  int size();
+
+  /**
+   * Gets the MIME media type that best describes the content of this blob.
+   * @return MIME media type (e.g. {@code application/octet-stream})
+   */
+  String getContentType();
+
+  /**
    * Gets an input stream that can be used to retrieve the contents
    * of this blob.
    * @return input streams

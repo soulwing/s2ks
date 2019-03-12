@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.soulwing.s2ks.filesystem;
+package org.soulwing.s2ks.pbe;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -40,18 +40,17 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.soulwing.s2ks.base.AbstractKeyWrapOperator;
-import org.soulwing.s2ks.KeyUtil;
 import org.soulwing.s2ks.KeyDescriptor;
 import org.soulwing.s2ks.KeyStorageException;
+import org.soulwing.s2ks.KeyUtil;
 import org.soulwing.s2ks.NoSuchKeyException;
-import org.soulwing.s2ks.pbe.PbeKeyFactory;
-import org.soulwing.s2ks.pbe.PbeWrapOperator;
-import org.soulwing.s2ks.pem.PemBlobReader;
+import org.soulwing.s2ks.base.AbstractKeyWrapOperator;
+import org.soulwing.s2ks.filesystem.FilesystemStorageService;
+import org.soulwing.s2ks.pem.PemBlobEncoder;
 import org.soulwing.s2ks.pem.PemEncoder;
 
 /**
- * Tests for {@link FilesystemKeyStorage}.
+ * Tests for {@link PbeKeyStorage}.
  * <p>
  * The tests in this class are really integration tests, but because the
  * filesystem resource is available to every Java SE runtime, and the tests
@@ -59,26 +58,27 @@ import org.soulwing.s2ks.pem.PemEncoder;
  *
  * @author Carl Harris
  */
-public class FilesystemKeyStorageTest {
+public class PbeKeyStorageTest {
 
-  private static final String SUFFIX = ".pem";
   private static Path parent;
-  private FilesystemKeyStorage storage;
+
+  private PbeKeyStorage storage;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     parent = Files.createTempDirectory(
-        FilesystemKeyStorageTest.class.getSimpleName());
+        PbeKeyStorageTest.class.getSimpleName());
   }
 
   @Before
   public void setUp() throws Exception {
-    storage = new FilesystemKeyStorage(
-        PemBlobReader.getInstance(),
+    storage = new PbeKeyStorage(
+        PemBlobEncoder.getInstance(),
         PemEncoder.getInstance(),
         PbeWrapOperator.getInstance(),
         PbeKeyFactory.generateKey("secret".toCharArray()),
-        parent.resolve("keys"), SUFFIX);
+        new FilesystemStorageService(parent.resolve("keys"),
+            PemBlobEncoder.getInstance()));
   }
 
   @AfterClass
@@ -158,10 +158,11 @@ public class FilesystemKeyStorageTest {
     final Key retrieved = storage.retrieve(id);
     assertThat(retrieved, is(equalTo(key)));
 
-    final String path = storage.idToPath(id, SUFFIX);
+    final String path = storage.idToPath(id,
+        PemEncoder.getInstance().getPathSuffix());
     try (final FileInputStream inputStream = new FileInputStream(path)) {
       return PemEncoder.getInstance().decode(
-          PemBlobReader.getInstance().read(inputStream));
+          PemBlobEncoder.getInstance().decode(inputStream).get(0));
     }
   }
 

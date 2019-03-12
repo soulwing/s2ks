@@ -20,6 +20,7 @@ package org.soulwing.s2ks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.Matchers.startsWith;
@@ -29,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Key;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +43,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.soulwing.s2ks.base.AbstractMutableKeyStorage;
+import org.soulwing.s2ks.base.WrapperKeyResponse;
 
 /**
  * Unit tests for {@link AbstractMutableKeyStorage}.
@@ -59,7 +62,7 @@ public class AbstractMutableKeyStorageTest {
   public final ExpectedException expectedException = ExpectedException.none();
 
   @Mock
-  private BlobReader blobReader;
+  private BlobEncoder blobEncoder;
 
   @Mock
   private KeyEncoder keyEncoder;
@@ -71,11 +74,11 @@ public class AbstractMutableKeyStorageTest {
   private Key wrapperKey;
 
   @Mock
-  private Blob blob;
+  private Blob subjectBlob, wrapperBlob;
 
   private Key subjectKey = KeyUtil.aesKey(256);
 
-  private KeyDescriptor subjectKeyDescriptor;
+  private KeyDescriptor subjectKeyDescriptor, wrapperKeyDescriptor;
 
   private ByteArrayInputStream contentStream =
       new ByteArrayInputStream(new byte[0]);
@@ -90,18 +93,30 @@ public class AbstractMutableKeyStorageTest {
         .type(KeyDescriptor.Type.SECRET)
         .build(subjectKey.getEncoded());
 
+    wrapperKeyDescriptor = KeyDescriptor.builder()
+        .algorithm("ALGORITHM")
+        .type(KeyDescriptor.Type.SECRET)
+        .build(subjectKey.getEncoded());
+
     storage  = new MockKeyStorage(
-        blobReader, keyEncoder, keyWrapOperator, SUFFIX, wrapperKey,
+        blobEncoder, keyEncoder, keyWrapOperator, wrapperKey,
         contentStream, subjectKeyDescriptor);
+
+    context.checking(new Expectations() {
+      {
+        allowing(keyEncoder).getPathSuffix();
+        will(returnValue(SUFFIX));
+      }
+    });
   }
 
   @Test
   public void testRetrieve() throws Exception {
     context.checking(new Expectations() {
       {
-        oneOf(blobReader).readAll(contentStream);
-        will(returnValue(Collections.singletonList(blob)));
-        oneOf(keyEncoder).decode(blob);
+        oneOf(blobEncoder).decode(contentStream);
+        will(returnValue(Collections.singletonList(subjectBlob)));
+        oneOf(keyEncoder).decode(subjectBlob);
         will(returnValue(subjectKeyDescriptor));
         oneOf(keyWrapOperator).unwrap(subjectKeyDescriptor, wrapperKey);
         will(returnValue(subjectKey));
@@ -116,8 +131,8 @@ public class AbstractMutableKeyStorageTest {
   public void testRetrieveWhenIOException() throws Exception {
     context.checking(new Expectations() {
       {
-        oneOf(blobReader).readAll(contentStream);
-        will(returnValue(Collections.singletonList(blob)));
+        oneOf(blobEncoder).decode(contentStream);
+        will(returnValue(Collections.singletonList(subjectBlob)));
       }
     });
 
@@ -133,8 +148,8 @@ public class AbstractMutableKeyStorageTest {
   public void testRetrieveWhenFileNotFoundException() throws Exception {
     context.checking(new Expectations() {
       {
-        oneOf(blobReader).readAll(contentStream);
-        will(returnValue(Collections.singletonList(blob)));
+        oneOf(blobEncoder).decode(contentStream);
+        will(returnValue(Collections.singletonList(subjectBlob)));
       }
     });
 
@@ -152,15 +167,39 @@ public class AbstractMutableKeyStorageTest {
         oneOf(keyWrapOperator).wrap(subjectKey, wrapperKey);
         will(returnValue(subjectKeyDescriptor));
         oneOf(keyEncoder).encode(subjectKeyDescriptor);
-        will(returnValue(blob));
+        will(returnValue(subjectBlob));
       }
     });
 
     storage.store(ID, subjectKey);
-    assertThat(storage.blob, is(sameInstance(blob)));
+
+    assertThat(storage.blobs, is(equalTo(Collections.singletonList(subjectBlob))));
     assertThat(storage.path, startsWith(ID));
     assertThat(storage.path, endsWith(SUFFIX));
   }
+
+  @Test
+  public void testStoreWhenIncludesKeyDescriptor() throws Exception {
+    context.checking(new Expectations() {
+      {
+        oneOf(keyEncoder).encode(wrapperKeyDescriptor);
+        will(returnValue(wrapperBlob));
+        oneOf(keyWrapOperator).wrap(subjectKey, wrapperKey);
+        will(returnValue(subjectKeyDescriptor));
+        oneOf(keyEncoder).encode(subjectKeyDescriptor);
+        will(returnValue(subjectBlob));
+      }
+    });
+
+    storage.response = WrapperKeyResponse.with(wrapperKey, wrapperKeyDescriptor);
+    storage.store(ID, subjectKey);
+
+    assertThat(storage.blobs,
+        is(equalTo(Arrays.asList(wrapperBlob, subjectBlob))));
+    assertThat(storage.path, startsWith(ID));
+    assertThat(storage.path, endsWith(SUFFIX));
+  }
+
 
   @Test
   public void testStoreWhenIOException() throws Exception {
@@ -169,7 +208,7 @@ public class AbstractMutableKeyStorageTest {
         oneOf(keyWrapOperator).wrap(subjectKey, wrapperKey);
         will(returnValue(subjectKeyDescriptor));
         oneOf(keyEncoder).encode(subjectKeyDescriptor);
-        will(returnValue(blob));
+        will(returnValue(subjectBlob));
       }
     });
 
@@ -180,54 +219,55 @@ public class AbstractMutableKeyStorageTest {
 
     storage.store(ID, subjectKey);
 
-    assertThat(storage.blob, is(sameInstance(blob)));
+    assertThat(storage.blobs, is(equalTo(Collections.singletonList(subjectBlob))));
     assertThat(storage.path, startsWith(ID));
   }
 
 
   private static class MockKeyStorage extends AbstractMutableKeyStorage {
 
-    private final String pathSuffix;
     private final Key wrapperKey;
     private final InputStream contentStream;
     private final KeyDescriptor subjectKeyDescriptor;
 
-    private Blob blob;
+    private WrapperKeyResponse response;
+    private List<Blob> blobs;
     private String path;
     private IOException ioException;
 
-    MockKeyStorage(BlobReader blobReader, KeyEncoder keyEncoder,
-        KeyWrapOperator keyWrapOperator, String pathSuffix, Key wrapperKey,
-        InputStream contentStream, KeyDescriptor subjectKeyDescriptor) {
-      super(blobReader, keyEncoder, keyWrapOperator, pathSuffix);
-      this.pathSuffix = pathSuffix;
+    MockKeyStorage(BlobEncoder blobEncoder, KeyEncoder keyEncoder,
+        KeyWrapOperator keyWrapOperator, Key wrapperKey,
+        InputStream contentStream,
+        KeyDescriptor subjectKeyDescriptor) {
+      super(blobEncoder, keyEncoder, keyWrapOperator);
       this.wrapperKey = wrapperKey;
       this.contentStream = contentStream;
       this.subjectKeyDescriptor = subjectKeyDescriptor;
+      this.response = WrapperKeyResponse.with(wrapperKey);
     }
 
     @Override
-    protected Key nextWrapperKey() {
-      return wrapperKey;
+    protected WrapperKeyResponse nextWrapperKey() {
+      return response;
     }
 
     @Override
-    protected void storeContent(Blob blob, String path) throws IOException {
-      assertThat(path, endsWith(pathSuffix));
-      this.blob = blob;
+    protected void storeContent(List<Blob> blobs, String path) throws IOException {
+      assertThat(path, endsWith(SUFFIX));
+      this.blobs = blobs;
       this.path = path;
       if (ioException != null) throw ioException;
     }
 
     @Override
     protected String idToPath(String id, String suffix) {
-      assertThat(suffix, is(sameInstance(pathSuffix)));
+      assertThat(suffix, is(sameInstance(SUFFIX)));
       return id + suffix;
     }
 
     @Override
     protected InputStream getContentStream(String path) throws IOException {
-      assertThat(path, endsWith(pathSuffix));
+      assertThat(path, endsWith(SUFFIX));
       if (ioException != null) throw ioException;
       return contentStream;
     }

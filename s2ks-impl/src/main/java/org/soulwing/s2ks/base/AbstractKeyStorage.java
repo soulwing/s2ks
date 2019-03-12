@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobReader;
+import org.soulwing.s2ks.BlobEncoder;
 import org.soulwing.s2ks.KeyDescriptor;
 import org.soulwing.s2ks.KeyEncoder;
 import org.soulwing.s2ks.KeyStorage;
@@ -39,24 +39,30 @@ import org.soulwing.s2ks.NoSuchKeyException;
  */
 public abstract class AbstractKeyStorage implements KeyStorage {
 
-  private final BlobReader blobReader;
+  private final BlobEncoder blobEncoder;
   final KeyEncoder keyEncoder;
   final KeyWrapOperator keyWrapOperator;
-  final String pathSuffix;
 
-  protected AbstractKeyStorage(BlobReader blobReader, KeyEncoder keyEncoder,
-      KeyWrapOperator keyWrapOperator, String pathSuffix) {
-    this.blobReader = blobReader;
+  protected AbstractKeyStorage(BlobEncoder blobEncoder, KeyEncoder keyEncoder,
+      KeyWrapOperator keyWrapOperator) {
+    this.blobEncoder = blobEncoder;
     this.keyEncoder = keyEncoder;
     this.keyWrapOperator = keyWrapOperator;
-    this.pathSuffix = pathSuffix;
+  }
+
+  /**
+   * Gets the blob encoder.
+   * @return blob encoder
+   */
+  public BlobEncoder getBlobEncoder() {
+    return blobEncoder;
   }
 
   @Override
   public final Key retrieve(String id) throws KeyStorageException {
-    final String path = idToPath(id, pathSuffix);
+    final String path = idToPath(id, keyEncoder.getPathSuffix());
     try (final InputStream contentStream = getContentStream(path)) {
-      final List<Blob> blobs = blobReader.readAll(contentStream);
+      final List<Blob> blobs = blobEncoder.decode(contentStream);
       final List<KeyDescriptor> descriptors = toDescriptors(blobs);
       final Key wrapperKey = getWrapperKey(descriptors);
       return keyWrapOperator.unwrap(getSubjectKey(descriptors), wrapperKey);

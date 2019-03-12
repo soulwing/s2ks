@@ -16,59 +16,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.soulwing.s2ks.pem;
+package org.soulwing.s2ks.base;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemWriter;
 import org.soulwing.s2ks.Blob;
 
 /**
- * A {@link Blob} that holds a {@link PemObject}.
+ * A simple blob backed by a byte array.
  *
  * @author Carl Harris
  */
-class PemBlob implements Blob {
+public class ByteArrayBlob implements Blob {
 
-  static final String CONTENT_TYPE = "text/plain";
+  private final byte[] content;
+  private final String contentType;
 
-  private final PemObject delegate;
-
-  PemBlob(PemObject delegate) {
-    this.delegate = delegate;
-  }
-
-  PemObject getDelegate() {
-    return delegate;
+  public ByteArrayBlob(byte[] content, String contentType) {
+    this.content = content;
+    this.contentType = contentType;
   }
 
   @Override
   public int size() {
-    return delegate.getContent().length;
+    return content.length;
   }
 
   @Override
   public String getContentType() {
-    return CONTENT_TYPE;
+    return contentType;
   }
 
   @Override
-  public InputStream getContentStream() {
-    return new ByteArrayInputStream(delegate.getContent());
+  public InputStream getContentStream() throws IOException {
+    return new ByteArrayInputStream(content);
   }
 
   @Override
   public void write(OutputStream outputStream) throws IOException {
-    final PemWriter writer = new PemWriter(
-        new OutputStreamWriter(outputStream, StandardCharsets.US_ASCII));
-    writer.writeObject(delegate);
-    writer.flush();
+    outputStream.write(content);
   }
 
 }

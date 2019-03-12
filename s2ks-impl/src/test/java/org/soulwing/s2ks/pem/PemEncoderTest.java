@@ -50,6 +50,12 @@ public class PemEncoderTest {
   private Blob otherBlob;
 
   @Test
+  public void testGetPathSuffix() throws Exception {
+    assertThat(PemEncoder.getInstance().getPathSuffix(),
+        is(equalTo(PemEncoder.SUFFIX)));
+  }
+
+  @Test
   public void testEncode() throws Exception {
     final byte[] data = KeyUtil.randomKeyData(246);
 

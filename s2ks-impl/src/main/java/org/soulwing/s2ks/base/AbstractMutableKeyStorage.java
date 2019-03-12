@@ -18,9 +18,11 @@
  */
 package org.soulwing.s2ks.base;import java.io.IOException;
 import java.security.Key;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobReader;
+import org.soulwing.s2ks.BlobEncoder;
 import org.soulwing.s2ks.KeyDescriptor;
 import org.soulwing.s2ks.KeyEncoder;
 import org.soulwing.s2ks.KeyStorageException;
@@ -36,23 +38,32 @@ public abstract class AbstractMutableKeyStorage extends AbstractKeyStorage
     implements MutableKeyStorage {
 
   protected AbstractMutableKeyStorage(
-      BlobReader blobReader,
+      BlobEncoder blobEncoder,
       KeyEncoder keyEncoder,
-      KeyWrapOperator keyWrapOperator,
-      String pathSuffix) {
-    super(blobReader, keyEncoder, keyWrapOperator, pathSuffix);
+      KeyWrapOperator keyWrapOperator) {
+    super(blobEncoder, keyEncoder, keyWrapOperator);
   }
 
   @Override
   public final void store(String id, Key key) throws KeyStorageException {
-    final String path = idToPath(id, pathSuffix);
-    final KeyDescriptor descriptor = keyWrapOperator.wrap(key, nextWrapperKey());
-    final Blob blob = keyEncoder.encode(descriptor);
+    final String path = idToPath(id, keyEncoder.getPathSuffix());
+    final WrapperKeyResponse response = nextWrapperKey();
+    final KeyDescriptor descriptor = keyWrapOperator.wrap(key, response.getKey());
+
+    final List<Blob> blobs = new ArrayList<>();
+    if (response.getDescriptor() != null) {
+      blobs.add(keyEncoder.encode(response.getDescriptor()));
+    }
+    blobs.add(keyEncoder.encode(descriptor));
+
     try {
-      storeContent(blob, path);
+      storeContent(blobs, path);
     }
     catch (IOException ex) {
       throw new KeyStorageException(ex.getMessage(), ex);
+    }
+    finally {
+      response.destroy();
     }
   }
 
@@ -62,19 +73,27 @@ public abstract class AbstractMutableKeyStorage extends AbstractKeyStorage
    * Values returned are not retained, so an implementation may safely assume
    * that it may return an arbitrary key for any invocation, allowing the
    * subclass to implement any rotation policy.
-   * @return wrapper key
+   * <p>
+   * The response object contains the wrapper key, and may optionally contain
+   * a key descriptor for the key, which will be encoded and written to storage
+   * such that it appears before the blob for the subject key.
+   *
+   * @return wrapper key response
    * @throws KeyWrapException if the next wrapper key cannot be derived
    */
-  protected abstract Key nextWrapperKey() throws KeyWrapException;
+  protected abstract WrapperKeyResponse nextWrapperKey() throws KeyWrapException;
 
   /**
-   * Stores the contents of the given blob at the location identified by
+   * Stores the contents of the given blobs at the location identified by
    * the given path, overwriting any existing content at that path.
-   * @param blob the blob to be stored
+   * <p>
+   * The blobs are to be concatenated in the output in the order in which they
+   * appear in the list.
+   * @param blobs the blobs to be stored
    * @param path virtual path identifying the storage location
-   * @throws IOException
+   * @throws IOException if an error occurs in storing the blob content
    */
-  protected abstract void storeContent(Blob blob, String path)
+  protected abstract void storeContent(List<Blob> blobs, String path)
       throws IOException;
 
 }

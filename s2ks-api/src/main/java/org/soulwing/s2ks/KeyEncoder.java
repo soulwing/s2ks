@@ -26,6 +26,13 @@ package org.soulwing.s2ks;
 public interface KeyEncoder {
 
   /**
+   * Gets the path name suffix that best describes a file containing a blob
+   * produced by the {@link #encode(KeyDescriptor)} method.
+   * @return path suffix
+   */
+  String getPathSuffix();
+
+  /**
    * Encodes the information in the given key descriptor as an opaque blob.
    * @param descriptor description of the key to be encoded
    * @return the resulting blob

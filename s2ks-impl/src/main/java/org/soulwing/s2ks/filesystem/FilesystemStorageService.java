@@ -26,84 +26,50 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Key;
 import java.util.List;
-
-import javax.crypto.SecretKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.soulwing.s2ks.MutableKeyStorage;
-import org.soulwing.s2ks.base.AbstractMutableKeyStorage;
 import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobReader;
-import org.soulwing.s2ks.KeyDescriptor;
-import org.soulwing.s2ks.KeyEncoder;
-import org.soulwing.s2ks.KeyStorageException;
-import org.soulwing.s2ks.KeyWrapOperator;
+import org.soulwing.s2ks.BlobEncoder;
+import org.soulwing.s2ks.StorageService;
+import org.soulwing.s2ks.pbe.PbeKeyStorage;
 
 /**
- * A {@link MutableKeyStorage} implementation that stores
- * keys on the host filesystem.
+ * A {@link StorageService} that uses the local filesystem.
  *
  * @author Carl Harris
  */
-public class FilesystemKeyStorage extends AbstractMutableKeyStorage {
+public class FilesystemStorageService implements StorageService {
 
   private static final Logger logger =
-      LoggerFactory.getLogger(FilesystemKeyStorage.class);
+      LoggerFactory.getLogger(PbeKeyStorage.class);
 
-  private final SecretKey pbeKey;
   private final Path directory;
+  private final BlobEncoder blobEncoder;
 
-  public FilesystemKeyStorage(
-      BlobReader blobReader,
-      KeyEncoder keyEncoder,
-      KeyWrapOperator keyWrapOperator,
-      SecretKey pbeKey, Path directory,
-      String pathSuffix) {
-    super(blobReader, keyEncoder, keyWrapOperator, pathSuffix);
+  public FilesystemStorageService(Path directory, BlobEncoder blobEncoder) {
     this.directory = directory;
-    this.pbeKey = pbeKey;
+    this.blobEncoder = blobEncoder;
   }
 
   @Override
-  protected String idToPath(String id, String suffix) {
+  public String idToPath(String id, String suffix) {
     return directory.resolve(id + suffix).toString();
   }
 
   @Override
-  protected InputStream getContentStream(String path) throws IOException {
+  public InputStream getContentStream(String path) throws IOException {
     logger.debug("retrieving key at path {}", path);
     return new FileInputStream(path);
   }
 
   @Override
-  protected Key getWrapperKey(List<KeyDescriptor> descriptors) {
-    return pbeKey;
-  }
-
-  @Override
-  protected KeyDescriptor getSubjectKey(List<KeyDescriptor> descriptors)
-      throws KeyStorageException {
-    if (descriptors.size() != 1) {
-      throw new KeyStorageException(
-          "requires exactly one key descriptor; got " + descriptors.size());
-    }
-    return descriptors.get(0);
-  }
-
-  @Override
-  protected Key nextWrapperKey() {
-    return pbeKey;
-  }
-
-  @Override
-  protected void storeContent(Blob blob, String path) throws IOException {
+  public void storeContent(List<Blob> blobs, String path) throws IOException {
     logger.debug("storing key at path {}", path);
     createParentIfNeeded(Paths.get(path));
     try (final OutputStream outputStream = new FileOutputStream(path)) {
-      blob.write(outputStream);
+      blobEncoder.encode(blobs, outputStream);
     }
   }
 

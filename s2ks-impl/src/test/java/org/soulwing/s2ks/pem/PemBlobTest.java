@@ -49,6 +49,16 @@ public class PemBlobTest {
   private PemBlob blob = new PemBlob(object);
 
   @Test
+  public void testSize() throws Exception {
+    assertThat(blob.size(), is(equalTo(object.getContent().length)));
+  }
+
+  @Test
+  public void testGetContentType() throws Exception {
+    assertThat(blob.getContentType(), is(equalTo(PemBlob.CONTENT_TYPE)));
+  }
+
+  @Test
   public void testGetDelegate() throws Exception {
     assertThat(blob.getDelegate(), is(sameInstance(object)));
   }

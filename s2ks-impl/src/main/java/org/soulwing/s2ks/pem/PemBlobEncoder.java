@@ -21,45 +21,46 @@ package org.soulwing.s2ks.pem;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobReader;
+import org.soulwing.s2ks.BlobEncoder;
 
 /**
- * A {@link BlobReader} that reads PEM-encoded blobs.
+ * A {@link BlobEncoder} that handles {@link PemBlob} blobs.
  *
  * @author Carl Harris
  */
-public class PemBlobReader implements BlobReader {
+public class PemBlobEncoder implements BlobEncoder {
 
-  private static final PemBlobReader INSTANCE = new PemBlobReader();
+  private static final PemBlobEncoder INSTANCE = new PemBlobEncoder();
 
   /**
    * Gets the singleton instance.
    * @return singleton instance
    */
-  public static PemBlobReader getInstance() {
+  public static PemBlobEncoder getInstance() {
     return INSTANCE;
   }
 
-  private PemBlobReader() { }
-
   @Override
-  public Blob read(InputStream inputStream) throws IOException {
-    final PemReader reader = new PemReader(
-        new InputStreamReader(inputStream, StandardCharsets.US_ASCII));
-    return Optional.ofNullable(reader.readPemObject())
-        .map(PemBlob::new).orElse(null);
+  public void encode(List<Blob> blobs, OutputStream outputStream)
+      throws IOException {
+    for (final Blob blob : blobs) {
+      if (!(blob instanceof PemBlob)) {
+        throw new IllegalArgumentException("requires PEM blobs");
+      }
+      blob.write(outputStream);
+    }
   }
 
   @Override
-  public List<Blob> readAll(InputStream inputStream) throws IOException {
+  public List<Blob> decode(InputStream inputStream) throws IOException {
     final List<Blob> blobs = new ArrayList<>();
     final PemReader reader = new PemReader(
         new InputStreamReader(inputStream, StandardCharsets.US_ASCII));

@@ -41,6 +41,8 @@ import org.soulwing.s2ks.KeyEncoder;
  */
 public class PemEncoder implements KeyEncoder {
 
+  static final String SUFFIX = ".pem";
+
   private static final PemEncoder INSTANCE = new PemEncoder();
 
   private static final String TYPES =
@@ -60,6 +62,11 @@ public class PemEncoder implements KeyEncoder {
   }
 
   private PemEncoder() { }
+
+  @Override
+  public String getPathSuffix() {
+    return SUFFIX;
+  }
 
   @Override
   public Blob encode(KeyDescriptor descriptor) throws KeyEncodeException {
