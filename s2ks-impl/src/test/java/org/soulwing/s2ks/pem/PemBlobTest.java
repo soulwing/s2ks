@@ -20,6 +20,7 @@ package org.soulwing.s2ks.pem;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 
@@ -50,7 +51,7 @@ public class PemBlobTest {
 
   @Test
   public void testSize() throws Exception {
-    assertThat(blob.size(), is(equalTo(object.getContent().length)));
+    assertThat(blob.size(), is(greaterThan(object.getContent().length)));
   }
 
   @Test

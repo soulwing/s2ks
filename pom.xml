@@ -101,6 +101,7 @@
   <modules>
     <module>s2ks-api</module>
     <module>s2ks-impl</module>
+    <module>s2ks-aws</module>
   </modules>
 
 </project>

@@ -78,7 +78,7 @@ public class WrapperKeyResponse {
    * Gets the wrapper key.
    * @return key object
    */
-  Key getKey() {
+  public Key getKey() {
     return key;
   }
 
@@ -86,7 +86,7 @@ public class WrapperKeyResponse {
    * Gets the descriptor.
    * @return descriptor or {@code null} if this response has no descriptor
    */
-  KeyDescriptor getDescriptor() {
+  public KeyDescriptor getDescriptor() {
     return descriptor;
   }
 

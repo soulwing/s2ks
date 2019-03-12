@@ -24,8 +24,6 @@ import java.security.Key;
 import java.util.List;
 import javax.crypto.SecretKey;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.soulwing.s2ks.Blob;
 import org.soulwing.s2ks.BlobEncoder;
 import org.soulwing.s2ks.KeyDescriptor;
@@ -38,15 +36,12 @@ import org.soulwing.s2ks.base.AbstractMutableKeyStorage;
 import org.soulwing.s2ks.base.WrapperKeyResponse;
 
 /**
- * A {@link MutableKeyStorage} implementation that stores using
+ * A {@link MutableKeyStorage} implementation that stores keys using
  * password-based encryption.
  *
  * @author Carl Harris
  */
 public class PbeKeyStorage extends AbstractMutableKeyStorage {
-
-  private static final Logger logger =
-      LoggerFactory.getLogger(PbeKeyStorage.class);
 
   private final SecretKey pbeKey;
   private final StorageService storageService;

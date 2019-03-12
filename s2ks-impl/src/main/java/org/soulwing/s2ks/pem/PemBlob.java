@@ -19,6 +19,7 @@
 package org.soulwing.s2ks.pem;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -50,7 +51,10 @@ class PemBlob implements Blob {
 
   @Override
   public int size() {
-    return delegate.getContent().length;
+    final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    final PemWriter writer = new PemWriter(new OutputStreamWriter(
+        outputStream, StandardCharsets.US_ASCII));
+    return writer.getOutputSize(getDelegate());
   }
 
   @Override

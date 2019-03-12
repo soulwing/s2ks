@@ -21,154 +21,100 @@ package org.soulwing.s2ks.pbe;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.Key;
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.UUID;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
-import org.junit.AfterClass;
+import org.jmock.Expectations;
+import org.jmock.auto.Mock;
+import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.soulwing.s2ks.Blob;
+import org.soulwing.s2ks.BlobEncoder;
 import org.soulwing.s2ks.KeyDescriptor;
+import org.soulwing.s2ks.KeyEncoder;
 import org.soulwing.s2ks.KeyStorageException;
-import org.soulwing.s2ks.KeyUtil;
-import org.soulwing.s2ks.NoSuchKeyException;
-import org.soulwing.s2ks.base.AbstractKeyWrapOperator;
-import org.soulwing.s2ks.filesystem.FilesystemStorageService;
-import org.soulwing.s2ks.pem.PemBlobEncoder;
-import org.soulwing.s2ks.pem.PemEncoder;
+import org.soulwing.s2ks.KeyWrapOperator;
+import org.soulwing.s2ks.StorageService;
 
 /**
- * Tests for {@link PbeKeyStorage}.
- * <p>
- * The tests in this class are really integration tests, but because the
- * filesystem resource is available to every Java SE runtime, and the tests
- * are relatively fast to run, we run them with unit tests.
+ * Unit tests for {@link PbeKeyStorage}.
  *
  * @author Carl Harris
  */
 public class PbeKeyStorageTest {
 
-  private static Path parent;
+  private static final String ID = "id";
+  private static final String SUFFIX = "suffix";
+  private static final String PATH = "path";
+  @Rule
+  public final JUnitRuleMockery context = new JUnitRuleMockery();
+
+  @Mock
+  private BlobEncoder blobEncoder;
+
+  @Mock
+  private KeyEncoder keyEncoder;
+
+  @Mock
+  private KeyWrapOperator keyWrapOperator;
+
+  @Mock
+  private StorageService storageService;
+
+  @Mock
+  private SecretKey pbeKey;
+
+  @Mock
+  private Blob blob;
 
   private PbeKeyStorage storage;
 
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception {
-    parent = Files.createTempDirectory(
-        PbeKeyStorageTest.class.getSimpleName());
-  }
-
   @Before
   public void setUp() throws Exception {
-    storage = new PbeKeyStorage(
-        PemBlobEncoder.getInstance(),
-        PemEncoder.getInstance(),
-        PbeWrapOperator.getInstance(),
-        PbeKeyFactory.generateKey("secret".toCharArray()),
-        new FilesystemStorageService(parent.resolve("keys"),
-            PemBlobEncoder.getInstance()));
-  }
-
-  @AfterClass
-  public static void tearDownAfterClass() throws Exception {
-    recursivelyDelete(parent);
-  }
-
-  private static void recursivelyDelete(Path directory) throws IOException {
-    try (final DirectoryStream<Path> paths =
-             Files.newDirectoryStream(directory)) {
-      paths.forEach(path -> {
-        try {
-          if (Files.isDirectory(path)) {
-            recursivelyDelete(path);
-          }
-          Files.delete(path);
-        }
-        catch (IOException ex) {
-          throw new RuntimeException(ex);
-        }
-      });
-    }
+    storage = new PbeKeyStorage(blobEncoder, keyEncoder,
+        keyWrapOperator, pbeKey, storageService);
   }
 
   @Test
-  public void testStoreAndRetrieveAesKey() throws Exception {
-    final SecretKey key = KeyUtil.aesKey(256);
-    final KeyDescriptor descriptor = validateStoreAndRetrieve(key);
+  public void testIdToPath() throws Exception {
+    context.checking(new Expectations() {
+      {
+        oneOf(storageService).idToPath(ID, SUFFIX);
+        will(returnValue(PATH));
+      }
+    });
 
-    assertThat(descriptor.getType(), is(equalTo(KeyDescriptor.Type.SECRET)));
-    assertThat(descriptor.getAlgorithm(), is(equalTo("AES")));
-    validateMetadata(descriptor);
-
-    // since the byte array of a AES key spec is directly encoded, we
-    // can use the blob content to try to create a key spec; if the original
-    // subject key was properly encrypted, a key created from the blob content
-    // shouldn't be the same as the original key
-
-    final SecretKey contentKey = new SecretKeySpec(descriptor.getKeyData(), "AES");
-    assertThat(contentKey, is(not(equalTo(key))));
-
+    assertThat(storage.idToPath(ID, SUFFIX), is(equalTo(PATH)));
   }
 
   @Test
-  public void testStoreAndRetrieveEcPrivateKey() throws Exception {
-    final KeyDescriptor descriptor =
-        validateStoreAndRetrieve(KeyUtil.ecKeyPair().getPrivate());
+  public void testGetContentStream() throws Exception {
+    final ByteArrayInputStream inputStream = new ByteArrayInputStream(new byte[0]);
+    context.checking(new Expectations() {
+      {
+        oneOf(storageService).getContentStream(PATH);
+        will(returnValue(inputStream));
+      }
+    });
 
-    assertThat(descriptor.getType(), is(equalTo(KeyDescriptor.Type.PRIVATE)));
-    assertThat(descriptor.getAlgorithm(), is(equalTo("EC")));
-    validateMetadata(descriptor);
+    assertThat(storage.getContentStream(PATH), is(sameInstance(inputStream)));
+  }
+
+
+  @Test
+  public void testGetWrapperKey() throws Exception {
+    assertThat(storage.getWrapperKey(null), is(sameInstance(pbeKey)));
   }
 
   @Test
-  public void testStoreAndRetrieveRsaPrivateKey() throws Exception {
-    final KeyDescriptor descriptor =
-        validateStoreAndRetrieve(KeyUtil.rsaKeyPair().getPrivate());
-
-    assertThat(descriptor.getType(), is(equalTo(KeyDescriptor.Type.PRIVATE)));
-    assertThat(descriptor.getAlgorithm(), is(equalTo("RSA")));
-    validateMetadata(descriptor);
-  }
-
-  private void validateMetadata(KeyDescriptor descriptor) {
-    assertThat(descriptor.getMetadata()
-            .get(AbstractKeyWrapOperator.PROC_TYPE_HEADER),
-        is(equalTo(AbstractKeyWrapOperator.PROC_TYPE_VALUE)));
-
-    assertThat(descriptor.getMetadata()
-            .get(AbstractKeyWrapOperator.DEK_INFO_HEADER),
-        is(not(nullValue())));
-  }
-
-  private KeyDescriptor validateStoreAndRetrieve(Key key) throws Exception {
-    final String id = UUID.randomUUID().toString();
-    storage.store(id, key);
-    final Key retrieved = storage.retrieve(id);
-    assertThat(retrieved, is(equalTo(key)));
-
-    final String path = storage.idToPath(id,
-        PemEncoder.getInstance().getPathSuffix());
-    try (final FileInputStream inputStream = new FileInputStream(path)) {
-      return PemEncoder.getInstance().decode(
-          PemBlobEncoder.getInstance().decode(inputStream).get(0));
-    }
-  }
-
-  @Test(expected = NoSuchKeyException.class)
-  public void testRetrieveWhenNotFound() throws Exception {
-    storage.retrieve(UUID.randomUUID().toString());
+  public void testNextWrapperKey() throws Exception {
+    assertThat(storage.nextWrapperKey().getKey(), is(sameInstance(pbeKey)));
   }
 
   @Test(expected = KeyStorageException.class)
@@ -188,5 +134,18 @@ public class PbeKeyStorageTest {
             .type(KeyDescriptor.Type.SECRET)
             .build(new byte[1])));
   }
+
+  @Test
+  public void testStoreContent() throws Exception {
+    context.checking(new Expectations() {
+      {
+        oneOf(storageService).storeContent(Collections.singletonList(blob),
+            PATH);
+      }
+    });
+
+    storage.storeContent(Collections.singletonList(blob), PATH);
+  }
+
 
 }
