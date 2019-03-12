@@ -26,9 +26,10 @@
     <version>14</version>
   </parent>
 
-  <groupId>org.soulwing</groupId>
+  <groupId>org.soulwing.s2ks</groupId>
   <artifactId>s2ks</artifactId>
   <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
   <name>S2KS: Simple Secure Key Storage</name>
   <description>JSON Web Token API</description>
@@ -41,40 +42,65 @@
     <tag>HEAD</tag>
   </scm>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jmock</groupId>
-      <artifactId>jmock-junit4</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk15on</artifactId>
+        <version>1.61</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.26</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <scope>test</scope>
+        <version>1.2.3</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <scope>test</scope>
+        <version>4.12</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-core</artifactId>
+        <scope>test</scope>
+        <version>${version.org.hamcrest}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-library</artifactId>
+        <scope>test</scope>
+        <version>${version.org.hamcrest}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jmock</groupId>
+        <artifactId>jmock-junit4</artifactId>
+        <scope>test</scope>
+        <version>2.8.2</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <scope>test</scope>
+        <version>2.6</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <properties>
     <java.version>1.8</java.version>
+    <version.org.hamcrest>1.3</version.org.hamcrest>
   </properties>
+
+  <modules>
+    <module>s2ks-api</module>
+    <module>s2ks-impl</module>
+  </modules>
 
 </project>
