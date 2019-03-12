@@ -34,3 +34,58 @@ _Simple Secure Key Storage (S2KS)_ to fill that need. If you have a similar
 need perhaps you will find it useful. The project is open source under the
 Apache Software License (ASL). I will consider adding additional licenses,
 as well, should the need arise.
+
+Basic Usage
+===========
+
+> This is still under construction, so these instructions might not be
+> right on target.
+
+#### Add dependencies to your POM
+```xml
+<dependencies>
+  <dependency>
+    <groupId>org.soulwing.s2ks</groupId>
+    <artifactId>s2ks-api</artifactId>
+    <version>1.0.0-SNAPSHOT</version>  
+  </dependency>
+  <dependency>
+    <groupId>org.soulwing.s2ks</groupId>
+    <artifactId>s2ks-impl</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <scope>runtime</scope>  
+  </dependency>
+  <dependency>  <!-- needed only if you want to use the AWS KeyStorage provider -->
+    <groupId>org.soulwing.s2ks</groupId>
+    <artifactId>s2ks-aws</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <scope>runtime</scope>  
+  </dependency>
+</dependencies>
+``` 
+
+#### Get a MutableKeyStorage that writes to the local filesystem
+
+This example stores keys locally using password-based encryption (PBE). The
+master password can be placed in a file, as shown in this example, or can be
+specified as a string (using the `password` property).
+
+```java
+class Demo {
+
+  public static void main(String[] args) throws Exception {
+    Properties props = new Properties();
+    props.setProperty("storageDirectory", "/path/to/directory/where/keys/will/be/stored");
+    props.setProperty("passwordFile", "/path/to/file/containing/master/password/string");
+    MutableKeyStorage keyStorage = KeyStorageLocator.getInstance("LOCAL", props);
+
+    Key key;    // use any SecretKey or PrivateKey here
+    
+    keyStorage.store("some-key-id", key);
+   
+    assert key.equals(keyStorage.retrieve("some-key-id"));
+  }
+}
+
+```
+
