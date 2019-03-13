@@ -52,12 +52,11 @@ public final class KeyStorageLocator {
     try {
       return (MutableKeyStorage) getProviderInstance(
               p -> p.getName().equals(provider) && p.isMutable())
-          .orElseThrow(() -> new NoSuchProviderException(
-              "cannot find a mutable provider named `" + provider + "`"))
+          .orElseThrow(() -> new NoSuchProviderException(provider))
           .getInstance(properties);
     }
     catch (Exception ex) {
-      throw new ProviderConfigurationException(ex.toString(), ex);
+      throw new ProviderConfigurationException(ex.getMessage(), ex);
     }
   }
 
