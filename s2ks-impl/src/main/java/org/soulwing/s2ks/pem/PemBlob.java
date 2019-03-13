@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
-import org.soulwing.s2ks.Blob;
+import org.soulwing.s2ks.base.Blob;
 
 /**
  * A {@link Blob} that holds a {@link PemObject}.

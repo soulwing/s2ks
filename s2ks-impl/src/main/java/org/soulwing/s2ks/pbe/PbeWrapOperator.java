@@ -28,7 +28,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEParameterSpec;
 
 import org.soulwing.s2ks.base.AbstractKeyWrapOperator;
-import org.soulwing.s2ks.KeyWrapOperator;
+import org.soulwing.s2ks.base.KeyWrapOperator;
 
 /**
  * A {@link KeyWrapOperator} that uses password based encryption.

@@ -27,25 +27,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.Key;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
-import org.jmock.Expectations;
-import org.jmock.api.Invocation;
 import org.jmock.auto.Mock;
 import org.jmock.integration.junit4.JUnitRuleMockery;
-import org.jmock.lib.action.CustomAction;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobEncoder;
+import org.soulwing.s2ks.base.Blob;
+import org.soulwing.s2ks.base.BlobEncoder;
 import org.soulwing.s2ks.FilesUtil;
 import org.soulwing.s2ks.KeyUtil;
 

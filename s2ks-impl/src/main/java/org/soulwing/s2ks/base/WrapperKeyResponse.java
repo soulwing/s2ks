@@ -21,8 +21,6 @@ package org.soulwing.s2ks.base;
 import java.security.Key;
 import java.util.function.Consumer;
 
-import org.soulwing.s2ks.KeyDescriptor;
-
 /**
  * A response to a request to get the wrapper key for a subject key to be
  * stored.

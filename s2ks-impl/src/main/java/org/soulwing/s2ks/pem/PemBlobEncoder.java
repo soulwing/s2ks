@@ -28,8 +28,8 @@ import java.util.List;
 
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
-import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobEncoder;
+import org.soulwing.s2ks.base.Blob;
+import org.soulwing.s2ks.base.BlobEncoder;
 
 /**
  * A {@link BlobEncoder} that handles {@link PemBlob} blobs.

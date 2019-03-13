@@ -32,6 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.soulwing.s2ks.base.AbstractKeyWrapOperator;
+import org.soulwing.s2ks.base.KeyDescriptor;
 
 /**
  * An abstract base for {@link AbstractKeyWrapOperatorTest} implementations.

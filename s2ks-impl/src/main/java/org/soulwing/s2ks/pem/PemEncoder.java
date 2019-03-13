@@ -28,11 +28,11 @@ import java.util.stream.Collectors;
 
 import org.bouncycastle.util.io.pem.PemHeader;
 import org.bouncycastle.util.io.pem.PemObject;
-import org.soulwing.s2ks.Blob;
+import org.soulwing.s2ks.base.Blob;
 import org.soulwing.s2ks.KeyDecodeException;
-import org.soulwing.s2ks.KeyDescriptor;
+import org.soulwing.s2ks.base.KeyDescriptor;
 import org.soulwing.s2ks.KeyEncodeException;
-import org.soulwing.s2ks.KeyEncoder;
+import org.soulwing.s2ks.base.KeyEncoder;
 
 /**
  * A {@link KeyEncoder} for PEM encoding.

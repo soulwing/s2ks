@@ -21,13 +21,8 @@ import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobEncoder;
-import org.soulwing.s2ks.KeyDescriptor;
-import org.soulwing.s2ks.KeyEncoder;
 import org.soulwing.s2ks.KeyStorageException;
 import org.soulwing.s2ks.KeyWrapException;
-import org.soulwing.s2ks.KeyWrapOperator;
 import org.soulwing.s2ks.MutableKeyStorage;
 
 /**

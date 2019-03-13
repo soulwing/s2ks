@@ -32,6 +32,7 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.soulwing.s2ks.base.KeyDescriptor;
 
 /**
  * Unit tests for {@link KeyDescriptor}.

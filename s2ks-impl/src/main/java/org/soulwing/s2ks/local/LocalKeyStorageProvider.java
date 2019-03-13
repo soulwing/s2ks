@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import org.soulwing.s2ks.KeyStorage;
-import org.soulwing.s2ks.StorageService;
+import org.soulwing.s2ks.base.StorageService;
 import org.soulwing.s2ks.filesystem.FilesystemStorageService;
 import org.soulwing.s2ks.pbe.PbeKeyFactory;
 import org.soulwing.s2ks.pbe.PbeKeyStorage;

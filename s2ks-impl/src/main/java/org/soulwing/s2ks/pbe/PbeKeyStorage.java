@@ -24,14 +24,14 @@ import java.security.Key;
 import java.util.List;
 import javax.crypto.SecretKey;
 
-import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobEncoder;
-import org.soulwing.s2ks.KeyDescriptor;
-import org.soulwing.s2ks.KeyEncoder;
+import org.soulwing.s2ks.base.Blob;
+import org.soulwing.s2ks.base.BlobEncoder;
+import org.soulwing.s2ks.base.KeyDescriptor;
+import org.soulwing.s2ks.base.KeyEncoder;
 import org.soulwing.s2ks.KeyStorageException;
-import org.soulwing.s2ks.KeyWrapOperator;
+import org.soulwing.s2ks.base.KeyWrapOperator;
 import org.soulwing.s2ks.MutableKeyStorage;
-import org.soulwing.s2ks.StorageService;
+import org.soulwing.s2ks.base.StorageService;
 import org.soulwing.s2ks.base.AbstractMutableKeyStorage;
 import org.soulwing.s2ks.base.WrapperKeyResponse;
 

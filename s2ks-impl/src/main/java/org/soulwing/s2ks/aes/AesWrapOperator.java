@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 
-import org.soulwing.s2ks.KeyWrapOperator;
+import org.soulwing.s2ks.base.KeyWrapOperator;
 import org.soulwing.s2ks.base.AbstractKeyWrapOperator;
 
 /**

@@ -32,9 +32,9 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 import org.soulwing.s2ks.KeyUtil;
-import org.soulwing.s2ks.Blob;
+import org.soulwing.s2ks.base.Blob;
 import org.soulwing.s2ks.KeyDecodeException;
-import org.soulwing.s2ks.KeyDescriptor;
+import org.soulwing.s2ks.base.KeyDescriptor;
 
 /**
  * Unit tests for {@link PemEncoder}.

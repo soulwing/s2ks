@@ -19,8 +19,8 @@
 package org.soulwing.s2ks;
 
 /**
- * An exception thrown by a {@link KeyWrapOperator} to indicate that an
- * unexpected error (e.g. JCA exception) occurred while unwrapping a key.
+ * An exception thrown to indicate that an unexpected error (e.g. JCA exception)
+ * occurred while unwrapping a key.
  *
  * @author Carl Harris
  */

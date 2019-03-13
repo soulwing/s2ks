@@ -28,10 +28,8 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import org.soulwing.s2ks.KeyDescriptor;
 import org.soulwing.s2ks.KeyUnwrapException;
 import org.soulwing.s2ks.KeyWrapException;
-import org.soulwing.s2ks.KeyWrapOperator;
 
 /**
  * An abstract base for {@link KeyWrapOperator} implementations.

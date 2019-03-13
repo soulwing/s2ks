@@ -1,5 +1,5 @@
 /*
- * File created on Mar 12, 2019
+ * File created on Mar 13, 2019
  *
  * Copyright (c) 2019 Carl Harris, Jr
  * and others as noted
@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.soulwing.s2ks;
+package org.soulwing.s2ks.base;
 
 import java.security.Key;
 

@@ -45,7 +45,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.soulwing.s2ks.FilesUtil;
-import org.soulwing.s2ks.KeyDescriptor;
+import org.soulwing.s2ks.base.KeyDescriptor;
 import org.soulwing.s2ks.KeyStorageLocator;
 import org.soulwing.s2ks.KeyUtil;
 import org.soulwing.s2ks.MutableKeyStorage;

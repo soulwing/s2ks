@@ -43,6 +43,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.soulwing.s2ks.base.AbstractMutableKeyStorage;
+import org.soulwing.s2ks.base.Blob;
+import org.soulwing.s2ks.base.BlobEncoder;
+import org.soulwing.s2ks.base.KeyDescriptor;
+import org.soulwing.s2ks.base.KeyEncoder;
+import org.soulwing.s2ks.base.KeyWrapOperator;
 import org.soulwing.s2ks.base.WrapperKeyResponse;
 
 /**

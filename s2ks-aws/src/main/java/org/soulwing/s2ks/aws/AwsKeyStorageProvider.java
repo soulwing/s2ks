@@ -21,14 +21,13 @@ package org.soulwing.s2ks.aws;
 import java.util.Properties;
 
 import org.soulwing.s2ks.KeyStorage;
-import org.soulwing.s2ks.MasterKeyService;
-import org.soulwing.s2ks.StorageService;
+import org.soulwing.s2ks.base.MasterKeyService;
+import org.soulwing.s2ks.base.StorageService;
 import org.soulwing.s2ks.aes.AesWrapOperator;
 import org.soulwing.s2ks.pem.PemBlobEncoder;
 import org.soulwing.s2ks.pem.PemEncoder;
 import org.soulwing.s2ks.spi.KeyStorageProvider;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSClientBuilder;

@@ -33,7 +33,7 @@ import org.jmock.auto.Mock;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
-import org.soulwing.s2ks.Blob;
+import org.soulwing.s2ks.base.Blob;
 import org.soulwing.s2ks.KeyUtil;
 
 /**

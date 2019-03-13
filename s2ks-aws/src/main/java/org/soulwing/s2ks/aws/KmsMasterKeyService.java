@@ -22,10 +22,10 @@ import java.nio.ByteBuffer;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.soulwing.s2ks.EncryptionKey;
+import org.soulwing.s2ks.base.EncryptionKey;
 import org.soulwing.s2ks.KeyUnwrapException;
 import org.soulwing.s2ks.KeyWrapException;
-import org.soulwing.s2ks.MasterKeyService;
+import org.soulwing.s2ks.base.MasterKeyService;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.AWSKMSException;
 import com.amazonaws.services.kms.model.DataKeySpec;

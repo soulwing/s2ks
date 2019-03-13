@@ -19,7 +19,7 @@
 package org.soulwing.s2ks;
 
 /**
- * An exception thrown by a {@link KeyEncoder} to indicate that an
+ * An exception thrown by to indicate that an
  * unexpected error (e.g. JCA exception) occurred while decoding a key.
  *
  * @author Carl Harris

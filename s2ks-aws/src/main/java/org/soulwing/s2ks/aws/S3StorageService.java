@@ -26,9 +26,9 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobEncoder;
-import org.soulwing.s2ks.StorageService;
+import org.soulwing.s2ks.base.Blob;
+import org.soulwing.s2ks.base.BlobEncoder;
+import org.soulwing.s2ks.base.StorageService;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;

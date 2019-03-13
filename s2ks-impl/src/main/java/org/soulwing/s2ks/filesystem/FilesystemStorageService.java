@@ -30,9 +30,9 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.soulwing.s2ks.Blob;
-import org.soulwing.s2ks.BlobEncoder;
-import org.soulwing.s2ks.StorageService;
+import org.soulwing.s2ks.base.Blob;
+import org.soulwing.s2ks.base.BlobEncoder;
+import org.soulwing.s2ks.base.StorageService;
 import org.soulwing.s2ks.pbe.PbeKeyStorage;
 
 /**
