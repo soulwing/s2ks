@@ -37,8 +37,7 @@ public final class KeyStorageLocator {
       throws NoSuchProviderException, ProviderConfigurationException {
     try {
       return getProviderInstance(p -> p.getName().equals(provider))
-          .orElseThrow(() -> new NoSuchProviderException(
-              "cannot find a provider named `" + provider + "`"))
+          .orElseThrow(() -> new NoSuchProviderException(provider))
           .getInstance(properties);
     }
     catch (Exception ex) {
