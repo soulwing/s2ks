@@ -112,8 +112,8 @@ mO6FT+W/CQDBVZOK3RBshws1jSh0Ztq9Z5dpurWEGSQ=
 ```
 
 We'll get into more of the details below, but what you're looking at is a
-fairly common plain-text encoding for a private key. There's a couple of headers
-followed, by a base-64 encoded body that is the encrypted private key we stored. 
+fairly common plain-text encoding for a private key; a couple of headers
+followed by a base-64 encoded body that is the encrypted private key we stored. 
 
 The `DEK-Info` header provides the configuration details needed to initialize a 
 Java [Cipher](https://docs.oracle.com/javase/8/docs/api/javax/crypto/Cipher.html)
@@ -121,7 +121,7 @@ instance; it basically indicates that what's in the body of this file was
 encrypted using password-based encryption (PBE) using a SHA-512 HMAC and
 AES-256. The rest of the details in that header are an iteration count, salt,
 and initialization vector (IV) that are needed in order to successfully 
-decrypt the the key. 
+decrypt the the key (assuming that S2KS has the correct password).
 
 It's important to note that none of the things in this file are secret. This 
 file is _absolutely useless_ to anyone who does not possess the master password 
@@ -141,24 +141,26 @@ removed as soon as the application has retrieved it. Using a  secrets manager,
 you get _better_ protection for your stored keys; certainly much better than 
 simply having the password in an ordinary file on the host filesystem.
 
-We can provide _much better_ protection for stored keys using a _key 
+However, we can provide _much better_ protection for stored keys using a _key 
 management service_ (KMS), as shown in the following example.
 
 #### Get a MutableKeyStorage that stores keys using AWS KMS and S3 
 
 This example stores keys in an S3 bucket associated with an Amazon Web Services 
-account. For each stored key, the KMS service is used to generate a unique 
-encryption key using one of your configured master keys. In order to do this
-the running demo needs to have access to a KMS _customer master key (CMK)_ and
-needs permission to store and retrieve files in an S3 bucket.
+account. For each key that you store using `MutableKeyStorage`, the AWS KMS 
+service is used to generate a unique encryption key using a designated 
+_customer master key (CMK)_.  
+
+In order to do this in our example, we'll need to have access to a KMS customer
+master key and permission to store and retrieve files in an S3 bucket.
 
 > For the purpose of this demo, we'll assume you'll be using an IAM user with 
 > an access key and secret to access the master key and the S3 bucket. However,
 > when running applications on AWS EC2 machines or in the Elastic Container
 > Service (ECS), you should use an IAM role assigned to your EC2 machine 
-> instances or as an ECS Service Task Role. This ensures that only your running
-> application can access the master key and S3 bucket, without requiring you
-> to manage IAM access keys and secrets. See the AWS documentation on using 
+> instances or assigned as an ECS Service Task Role. This ensures that only your 
+> running application can access the master key and S3 bucket, without requiring 
+> you to manage IAM access keys and secrets. See the AWS documentation on using 
 > IAM roles for these purposes.  
 
 In order to run this example, you'll first need to do the following in your AWS 
@@ -166,7 +168,7 @@ account.
 
 1. [Create an IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html)
    and create an access key for that user.
-2. [Create a _customer master key_ (CMK)](https://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html)
+2. [Create a customer master key (CMK)](https://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html)
    and give the IAM user permission to use the master key. When creating the
    master key, assign the alias name _s2ks-demo_ to it; the example uses that
    alias name to identify the master key.
