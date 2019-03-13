@@ -33,6 +33,16 @@ import org.soulwing.s2ks.spi.KeyStorageProvider;
  */
 public final class KeyStorageLocator {
 
+  /**
+   * Gets a new key storage instance from the specified provider.
+   * @param provider provider name; e.g. {@code LOCAL}
+   * @param properties provider-defined configuration properties
+   * @return key storage instance
+   * @throws NoSuchProviderException if there exists no provider with the
+   *    given name
+   * @throws ProviderConfigurationException if the provider reports an
+   *    error in creating and configuring the storage instance
+   */
   public static KeyStorage getInstance(String provider, Properties properties)
       throws NoSuchProviderException, ProviderConfigurationException {
     try {
@@ -45,6 +55,16 @@ public final class KeyStorageLocator {
     }
   }
 
+  /**
+   * Gets a new mutable key storage instance from the specified provider.
+   * @param provider provider name; e.g. {@code LOCAL}
+   * @param properties provider-defined configuration properties
+   * @return key storage instance
+   * @throws NoSuchProviderException if there exists no provider with the
+   *    given name that supports the mutable interface
+   * @throws ProviderConfigurationException if the provider reports an
+   *    error in creating and configuring the storage instance
+   */
   public static MutableKeyStorage getMutableInstance(
       String provider, Properties properties)
       throws NoSuchProviderException, ProviderConfigurationException {
@@ -59,6 +79,11 @@ public final class KeyStorageLocator {
     }
   }
 
+  /**
+   * Finds a registered service provider
+   * @param predicate predicate to use to match a provider
+   * @return optional first matching provider
+   */
   private static Optional<KeyStorageProvider> getProviderInstance(
       Predicate<KeyStorageProvider> predicate) {
     return StreamSupport.stream(
