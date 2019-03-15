@@ -1,5 +1,5 @@
 /*
- * File created on Mar 12, 2019
+ * File created on Mar 15, 2019
  *
  * Copyright (c) 2019 Carl Harris, Jr
  * and others as noted
@@ -16,18 +16,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.soulwing.s2ks;
+package org.soulwing.s2ks.metadata;
+
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
+import org.soulwing.s2ks.MetadataUnwrapException;
 
 /**
- * An exception thrown to indicate that an unexpected error (e.g. JCA exception)
- * occurred while encoding a key.
+ * A factory that produces public keys from the corresponding private key.
  *
  * @author Carl Harris
  */
-public class KeyEncodeException extends KeyStorageException {
+public interface PublicKeyFactory {
 
-  public KeyEncodeException(String message, Throwable cause) {
-    super(message, cause);
-  }
+  /**
+   * Derives the public key that corresponds to the given private key.
+   * @param privateKey the subject private key
+   * @return corresponding public key
+   * @throws MetadataUnwrapException if the key cannot be successfully
+   *    derived
+   */
+  PublicKey generatePublic(PrivateKey privateKey)
+      throws MetadataUnwrapException;
 
 }

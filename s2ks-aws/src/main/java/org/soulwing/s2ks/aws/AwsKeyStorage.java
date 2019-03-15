@@ -23,17 +23,20 @@ import java.io.InputStream;
 import java.security.Key;
 import java.util.List;
 
+import org.soulwing.s2ks.KeyUnwrapException;
+import org.soulwing.s2ks.KeyWrapException;
+import org.soulwing.s2ks.base.AbstractMutableKeyStorage;
 import org.soulwing.s2ks.base.Blob;
 import org.soulwing.s2ks.base.BlobEncoder;
 import org.soulwing.s2ks.base.EncryptionKey;
 import org.soulwing.s2ks.base.KeyDescriptor;
 import org.soulwing.s2ks.base.KeyEncoder;
-import org.soulwing.s2ks.KeyUnwrapException;
-import org.soulwing.s2ks.KeyWrapException;
 import org.soulwing.s2ks.base.KeyWrapOperator;
 import org.soulwing.s2ks.base.MasterKeyService;
+import org.soulwing.s2ks.base.MetadataEncoder;
+import org.soulwing.s2ks.base.MetadataRecognizer;
+import org.soulwing.s2ks.base.MetadataWrapOperator;
 import org.soulwing.s2ks.base.StorageService;
-import org.soulwing.s2ks.base.AbstractMutableKeyStorage;
 import org.soulwing.s2ks.base.WrapperKeyResponse;
 
 /**
@@ -53,10 +56,15 @@ public class AwsKeyStorage extends AbstractMutableKeyStorage {
 
   public AwsKeyStorage(
       BlobEncoder blobEncoder,
-      KeyEncoder keyEncoder,
       KeyWrapOperator keyWrapOperator,
-      MasterKeyService masterKeyService, StorageService storageService) {
-    super(blobEncoder, keyEncoder, keyWrapOperator);
+      KeyEncoder keyEncoder,
+      MetadataWrapOperator metadataWrapOperator,
+      MetadataEncoder metadataEncoder,
+      MetadataRecognizer metadataRecognizer,
+      MasterKeyService masterKeyService,
+      StorageService storageService) {
+    super(blobEncoder, keyWrapOperator, keyEncoder,
+        metadataWrapOperator, metadataEncoder, metadataRecognizer);
     this.storageService = storageService;
     this.masterKeyService = masterKeyService;
   }

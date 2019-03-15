@@ -22,8 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.soulwing.s2ks.KeyStorageException;
+import org.soulwing.s2ks.KeyWithMetadata;
 import org.soulwing.s2ks.KeyWrapException;
 import org.soulwing.s2ks.MutableKeyStorage;
+import org.soulwing.s2ks.SimpleMetadata;
 
 /**
  * An abstract base for {@link MutableKeyStorage} implementations.
@@ -34,23 +36,37 @@ public abstract class AbstractMutableKeyStorage extends AbstractKeyStorage
 
   protected AbstractMutableKeyStorage(
       BlobEncoder blobEncoder,
+      KeyWrapOperator keyWrapOperator,
       KeyEncoder keyEncoder,
-      KeyWrapOperator keyWrapOperator) {
-    super(blobEncoder, keyEncoder, keyWrapOperator);
+      MetadataWrapOperator metadataWrapOperator,
+      MetadataEncoder metadataEncoder,
+      MetadataRecognizer metadataRecognizer) {
+    super(blobEncoder, keyWrapOperator, keyEncoder, metadataWrapOperator,
+        metadataRecognizer, metadataEncoder);
   }
 
   @Override
   public final void store(String id, Key key) throws KeyStorageException {
+    store(id, new KeyWithMetadata(key, SimpleMetadata.empty()));
+  }
+
+  @Override
+  public void store(String id, KeyWithMetadata keyWithMetadata)
+      throws KeyStorageException {
     final String path = idToPath(id, keyEncoder.getPathSuffix());
     final WrapperKeyResponse response = nextWrapperKey();
-    final KeyDescriptor descriptor = keyWrapOperator.wrap(key, response.getKey());
+    final KeyDescriptor descriptor =
+        keyWrapOperator.wrap(keyWithMetadata.getKey(), response.getKey());
 
     final List<Blob> blobs = new ArrayList<>();
     if (response.getDescriptor() != null) {
       blobs.add(keyEncoder.encode(response.getDescriptor()));
     }
     blobs.add(keyEncoder.encode(descriptor));
-
+    if (!keyWithMetadata.getMetadata().isEmpty()) {
+      blobs.add(metadataEncoder.encode(
+          metadataWrapOperator.wrap(keyWithMetadata)));
+    }
     try {
       storeContent(blobs, path);
     }

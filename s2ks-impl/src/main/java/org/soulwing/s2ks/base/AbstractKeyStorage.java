@@ -26,7 +26,11 @@ import java.util.List;
 import org.soulwing.s2ks.KeyStorage;
 import org.soulwing.s2ks.KeyStorageException;
 import org.soulwing.s2ks.KeyUnwrapException;
+import org.soulwing.s2ks.KeyWithMetadata;
+import org.soulwing.s2ks.Metadata;
+import org.soulwing.s2ks.MetadataUnwrapException;
 import org.soulwing.s2ks.NoSuchKeyException;
+import org.soulwing.s2ks.SimpleMetadata;
 
 /**
  * An abstract base for {@link KeyStorage} implementations.
@@ -37,12 +41,23 @@ public abstract class AbstractKeyStorage implements KeyStorage {
   private final BlobEncoder blobEncoder;
   final KeyEncoder keyEncoder;
   final KeyWrapOperator keyWrapOperator;
+  final MetadataWrapOperator metadataWrapOperator;
+  final MetadataEncoder metadataEncoder;
+  final MetadataRecognizer metadataRecognizer;
 
-  protected AbstractKeyStorage(BlobEncoder blobEncoder, KeyEncoder keyEncoder,
-      KeyWrapOperator keyWrapOperator) {
+  protected AbstractKeyStorage(
+      BlobEncoder blobEncoder,
+      KeyWrapOperator keyWrapOperator,
+      KeyEncoder keyEncoder,
+      MetadataWrapOperator metadataWrapOperator,
+      MetadataRecognizer metadataRecognizer,
+      MetadataEncoder metadataEncoder) {
     this.blobEncoder = blobEncoder;
     this.keyEncoder = keyEncoder;
     this.keyWrapOperator = keyWrapOperator;
+    this.metadataWrapOperator = metadataWrapOperator;
+    this.metadataRecognizer = metadataRecognizer;
+    this.metadataEncoder = metadataEncoder;
   }
 
   /**
@@ -55,12 +70,24 @@ public abstract class AbstractKeyStorage implements KeyStorage {
 
   @Override
   public final Key retrieve(String id) throws KeyStorageException {
+    return retrieveWithMetadata(id).getKey();
+  }
+
+  @Override
+  public KeyWithMetadata retrieveWithMetadata(String id)
+      throws KeyStorageException {
     final String path = idToPath(id, keyEncoder.getPathSuffix());
     try (final InputStream contentStream = getContentStream(path)) {
-      final List<Blob> blobs = blobEncoder.decode(contentStream);
+      final List<Blob> blobs = new ArrayList<>(blobEncoder.decode(contentStream));
+      final Blob metadataBlob = extractMetadataBlob(blobs);
       final List<KeyDescriptor> descriptors = toDescriptors(blobs);
       final Key wrapperKey = getWrapperKey(descriptors);
-      return keyWrapOperator.unwrap(getSubjectKey(descriptors), wrapperKey);
+      final Key subjectKey =
+          keyWrapOperator.unwrap(getSubjectKey(descriptors), wrapperKey);
+
+      final Metadata metadata = unwrapMetadata(subjectKey, metadataBlob);
+
+      return new KeyWithMetadata(subjectKey, metadata);
     }
     catch (FileNotFoundException ex) {
       throw new NoSuchKeyException(id);
@@ -68,6 +95,38 @@ public abstract class AbstractKeyStorage implements KeyStorage {
     catch (IOException ex) {
       throw new KeyStorageException(ex.getMessage(), ex);
     }
+  }
+
+  /**
+   * Unwraps the metadata contained in a blob.
+   * @param key key for the unwrap operation
+   * @param blob blob containing the subject metadata (can be null if there
+   *    was no metadata for the retrieved key
+   * @return metadata
+   * @throws MetadataUnwrapException
+   * @throws DecodingException
+   */
+  private Metadata unwrapMetadata(Key key, Blob blob)
+      throws MetadataUnwrapException, DecodingException {
+
+    if (blob == null) return SimpleMetadata.empty();
+    return metadataWrapOperator.unwrap(key, metadataEncoder.decode(blob));
+  }
+
+  /**
+   * Finds the metadata blob in collection of blobs.
+   * <p>
+   * If the metadata blob is found, it is removed from the given list.
+   * @param blobs list of blobs
+   * @return metadata blob or {@code null} if not found
+   */
+  private Blob extractMetadataBlob(List<Blob> blobs) {
+    final int metadataIndex = metadataRecognizer.indexOfMetadata(blobs);
+    final Blob blob = metadataIndex != -1 ? blobs.get(metadataIndex) : null;
+    if (metadataIndex != -1) {
+      blobs.remove(metadataIndex);
+    }
+    return blob;
   }
 
   /**

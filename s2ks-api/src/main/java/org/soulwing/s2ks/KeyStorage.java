@@ -28,7 +28,7 @@ import java.security.Key;
 public interface KeyStorage {
 
   /**
-   * Retrieves a key with the given identifier.
+   * Retrieves a key.
    * @param id unique identifier of the subject key
    * @return key object
    * @throws NoSuchKeyException if there is no key in storage with
@@ -41,5 +41,24 @@ public interface KeyStorage {
    */
   Key retrieve(String id)
       throws NoSuchKeyException, KeyUnwrapException, KeyStorageException;
+
+  /**
+   * Retrieves a key and its associated metadata.
+   * @param id unique identifier of the subject key
+   * @return key-with-metadata object
+   * @throws NoSuchKeyException if there is no key in storage with
+   *    the given identifier
+   * @throws KeyUnwrapException if an error occurs in unwrapping the
+   *    stored key; e.g. one of the myriad checked exceptions thrown
+   *    by the JCA API
+   * @throws MetadataUnwrapException if an error occurs in decoding the
+   *    metadata
+   * @throws KeyStorageException if the underlying storage mechanism cannot
+   *    successfully read the wrapped key from persistent storage
+   */
+  KeyWithMetadata retrieveWithMetadata(String id)
+      throws NoSuchKeyException, KeyUnwrapException,
+      MetadataUnwrapException, KeyStorageException;
+
 
 }

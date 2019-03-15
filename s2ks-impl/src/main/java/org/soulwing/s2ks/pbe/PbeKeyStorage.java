@@ -24,15 +24,18 @@ import java.security.Key;
 import java.util.List;
 import javax.crypto.SecretKey;
 
+import org.soulwing.s2ks.KeyStorageException;
+import org.soulwing.s2ks.MutableKeyStorage;
+import org.soulwing.s2ks.base.AbstractMutableKeyStorage;
 import org.soulwing.s2ks.base.Blob;
 import org.soulwing.s2ks.base.BlobEncoder;
 import org.soulwing.s2ks.base.KeyDescriptor;
 import org.soulwing.s2ks.base.KeyEncoder;
-import org.soulwing.s2ks.KeyStorageException;
 import org.soulwing.s2ks.base.KeyWrapOperator;
-import org.soulwing.s2ks.MutableKeyStorage;
+import org.soulwing.s2ks.base.MetadataEncoder;
+import org.soulwing.s2ks.base.MetadataRecognizer;
+import org.soulwing.s2ks.base.MetadataWrapOperator;
 import org.soulwing.s2ks.base.StorageService;
-import org.soulwing.s2ks.base.AbstractMutableKeyStorage;
 import org.soulwing.s2ks.base.WrapperKeyResponse;
 
 /**
@@ -48,11 +51,14 @@ public class PbeKeyStorage extends AbstractMutableKeyStorage {
 
   public PbeKeyStorage(
       BlobEncoder blobEncoder,
-      KeyEncoder keyEncoder,
-      KeyWrapOperator keyWrapOperator,
+      KeyWrapOperator keyWrapOperator, KeyEncoder keyEncoder,
+      MetadataWrapOperator metadataWrapOperator,
+      MetadataEncoder metadataEncoder,
+      MetadataRecognizer metadataRecognizer,
       SecretKey pbeKey,
       StorageService storageService) {
-    super(blobEncoder, keyEncoder, keyWrapOperator);
+    super(blobEncoder, keyWrapOperator, keyEncoder, metadataWrapOperator,
+        metadataEncoder, metadataRecognizer);
     this.pbeKey = pbeKey;
     this.storageService = storageService;
   }

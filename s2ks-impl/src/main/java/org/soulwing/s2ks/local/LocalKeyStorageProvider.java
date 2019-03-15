@@ -32,11 +32,14 @@ import java.util.Properties;
 import org.soulwing.s2ks.KeyStorage;
 import org.soulwing.s2ks.base.StorageService;
 import org.soulwing.s2ks.filesystem.FilesystemStorageService;
+import org.soulwing.s2ks.metadata.JwtMetadataWrapOperator;
 import org.soulwing.s2ks.pbe.PbeKeyFactory;
 import org.soulwing.s2ks.pbe.PbeKeyStorage;
 import org.soulwing.s2ks.pbe.PbeWrapOperator;
 import org.soulwing.s2ks.pem.PemBlobEncoder;
-import org.soulwing.s2ks.pem.PemEncoder;
+import org.soulwing.s2ks.pem.PemKeyEncoder;
+import org.soulwing.s2ks.pem.PemMetadataEncoder;
+import org.soulwing.s2ks.pem.PemMetadataRecognizer;
 import org.soulwing.s2ks.spi.KeyStorageProvider;
 
 /**
@@ -74,8 +77,10 @@ public class LocalKeyStorageProvider implements KeyStorageProvider {
 
     final PbeKeyStorage storage = new PbeKeyStorage(
         PemBlobEncoder.getInstance(),
-        PemEncoder.getInstance(),
-        PbeWrapOperator.getInstance(),
+        PbeWrapOperator.getInstance(), PemKeyEncoder.getInstance(),
+        JwtMetadataWrapOperator.getInstance(),
+        PemMetadataEncoder.getInstance(),
+        PemMetadataRecognizer.getInstance(),
         PbeKeyFactory.generateKey(password),
         storageService);
 

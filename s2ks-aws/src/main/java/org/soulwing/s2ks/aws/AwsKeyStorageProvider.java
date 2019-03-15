@@ -21,11 +21,14 @@ package org.soulwing.s2ks.aws;
 import java.util.Properties;
 
 import org.soulwing.s2ks.KeyStorage;
+import org.soulwing.s2ks.aes.AesWrapOperator;
 import org.soulwing.s2ks.base.MasterKeyService;
 import org.soulwing.s2ks.base.StorageService;
-import org.soulwing.s2ks.aes.AesWrapOperator;
+import org.soulwing.s2ks.metadata.JwtMetadataWrapOperator;
 import org.soulwing.s2ks.pem.PemBlobEncoder;
-import org.soulwing.s2ks.pem.PemEncoder;
+import org.soulwing.s2ks.pem.PemKeyEncoder;
+import org.soulwing.s2ks.pem.PemMetadataEncoder;
+import org.soulwing.s2ks.pem.PemMetadataRecognizer;
 import org.soulwing.s2ks.spi.KeyStorageProvider;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Regions;
@@ -71,9 +74,8 @@ public class AwsKeyStorageProvider implements KeyStorageProvider {
     final Regions region = getRegion(properties);
 
     return new AwsKeyStorage(PemBlobEncoder.getInstance(),
-        PemEncoder.getInstance(),
-        AesWrapOperator.getInstance(),
-        newMasterKeyService(properties, credentialsProvider, region),
+        AesWrapOperator.getInstance(), PemKeyEncoder.getInstance(),
+        JwtMetadataWrapOperator.getInstance(), PemMetadataEncoder.getInstance(), PemMetadataRecognizer.getInstance(), newMasterKeyService(properties, credentialsProvider, region),
         newStorageService(properties, credentialsProvider, region));
   }
 

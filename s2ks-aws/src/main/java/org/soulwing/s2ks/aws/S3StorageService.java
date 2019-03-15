@@ -75,10 +75,6 @@ class S3StorageService implements StorageService {
 
   @Override
   public void storeContent(List<Blob> blobs, String path) throws IOException {
-    if (blobs.size() != 2) {
-      throw new IllegalArgumentException("expected exactly 2 blobs");
-    }
-
     final ObjectMetadata metadata = new ObjectMetadata();
     metadata.setContentType(blobs.get(0).getContentType());
     metadata.setContentLength(blobs.stream().mapToInt(Blob::size).sum());

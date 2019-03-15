@@ -29,9 +29,9 @@ import java.util.stream.Collectors;
 import org.bouncycastle.util.io.pem.PemHeader;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.soulwing.s2ks.base.Blob;
-import org.soulwing.s2ks.KeyDecodeException;
+import org.soulwing.s2ks.base.DecodingException;
+import org.soulwing.s2ks.base.EncodingException;
 import org.soulwing.s2ks.base.KeyDescriptor;
-import org.soulwing.s2ks.KeyEncodeException;
 import org.soulwing.s2ks.base.KeyEncoder;
 
 /**
@@ -39,11 +39,11 @@ import org.soulwing.s2ks.base.KeyEncoder;
  *
  * @author Carl Harris
  */
-public class PemEncoder implements KeyEncoder {
+public class PemKeyEncoder implements KeyEncoder {
 
   static final String SUFFIX = ".pem";
 
-  private static final PemEncoder INSTANCE = new PemEncoder();
+  private static final PemKeyEncoder INSTANCE = new PemKeyEncoder();
 
   private static final String TYPES =
       Arrays.stream(KeyDescriptor.Type.values())
@@ -57,11 +57,11 @@ public class PemEncoder implements KeyEncoder {
    * Gets the singleton instance.
    * @return encoder instance
    */
-  public static PemEncoder getInstance() {
+  public static PemKeyEncoder getInstance() {
     return INSTANCE;
   }
 
-  private PemEncoder() { }
+  private PemKeyEncoder() { }
 
   @Override
   public String getPathSuffix() {
@@ -69,7 +69,7 @@ public class PemEncoder implements KeyEncoder {
   }
 
   @Override
-  public Blob encode(KeyDescriptor descriptor) throws KeyEncodeException {
+  public Blob encode(KeyDescriptor descriptor) throws EncodingException {
 
     final Map<String, String> metadata = descriptor.getMetadata();
     final List<PemHeader> headers = new ArrayList<>();
@@ -86,7 +86,7 @@ public class PemEncoder implements KeyEncoder {
 
   @Override
   @SuppressWarnings("unchecked")
-  public KeyDescriptor decode(Blob blob) throws KeyDecodeException {
+  public KeyDescriptor decode(Blob blob) throws DecodingException {
     if (!(blob instanceof PemBlob)) {
       throw new IllegalArgumentException("requires a PEM blob");
     }
@@ -94,7 +94,7 @@ public class PemEncoder implements KeyEncoder {
 
     final Matcher matcher = TYPE_PATTERN.matcher(object.getType());
     if (!matcher.matches()) {
-      throw new KeyDecodeException("`" + object.getType() +
+      throw new DecodingException("`" + object.getType() +
           "` is not a supported PEM object type");
     }
 

@@ -35,7 +35,6 @@ import java.nio.file.Path;
 import java.security.Key;
 import java.util.Properties;
 import java.util.UUID;
-
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -44,16 +43,18 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.soulwing.s2ks.FilesUtil;
-import org.soulwing.s2ks.base.KeyDescriptor;
 import org.soulwing.s2ks.KeyStorageLocator;
 import org.soulwing.s2ks.KeyUtil;
+import org.soulwing.s2ks.KeyWithMetadata;
+import org.soulwing.s2ks.Metadata;
 import org.soulwing.s2ks.MutableKeyStorage;
 import org.soulwing.s2ks.NoSuchKeyException;
 import org.soulwing.s2ks.ProviderConfigurationException;
+import org.soulwing.s2ks.SimpleMetadata;
 import org.soulwing.s2ks.base.AbstractKeyWrapOperator;
+import org.soulwing.s2ks.base.KeyDescriptor;
 import org.soulwing.s2ks.pem.PemBlobEncoder;
-import org.soulwing.s2ks.pem.PemEncoder;
+import org.soulwing.s2ks.pem.PemKeyEncoder;
 
 /**
  * Tests for the local storage provider.
@@ -76,7 +77,8 @@ public class LocalKeyStorageProviderTest {
 
   @AfterClass
   public static void tearDownAfterClass() throws Exception {
-    FilesUtil.recursivelyDelete(parent);
+    System.out.println(parent);
+    // FilesUtil.recursivelyDelete(parent);
   }
 
   @Rule
@@ -146,7 +148,7 @@ public class LocalKeyStorageProviderTest {
 
     assertThat(descriptor.getType(), is(equalTo(KeyDescriptor.Type.SECRET)));
     assertThat(descriptor.getAlgorithm(), is(equalTo("AES")));
-    validateMetadata(descriptor);
+    validateKeyMetadata(descriptor);
 
     // since the byte array of a AES key spec is directly encoded, we
     // can use the blob content to try to create a key spec; if the original
@@ -166,7 +168,7 @@ public class LocalKeyStorageProviderTest {
 
     assertThat(descriptor.getType(), is(equalTo(KeyDescriptor.Type.PRIVATE)));
     assertThat(descriptor.getAlgorithm(), is(equalTo("EC")));
-    validateMetadata(descriptor);
+    validateKeyMetadata(descriptor);
   }
 
   @Test
@@ -177,7 +179,7 @@ public class LocalKeyStorageProviderTest {
 
     assertThat(descriptor.getType(), is(equalTo(KeyDescriptor.Type.PRIVATE)));
     assertThat(descriptor.getAlgorithm(), is(equalTo("RSA")));
-    validateMetadata(descriptor);
+    validateKeyMetadata(descriptor);
   }
 
   @Test(expected = NoSuchKeyException.class)
@@ -196,7 +198,7 @@ public class LocalKeyStorageProviderTest {
         LocalKeyStorageProvider.NAME, properties);
   }
 
-  private void validateMetadata(KeyDescriptor descriptor) {
+  private void validateKeyMetadata(KeyDescriptor descriptor) {
     assertThat(descriptor.getMetadata()
             .get(AbstractKeyWrapOperator.PROC_TYPE_HEADER),
         is(equalTo(AbstractKeyWrapOperator.PROC_TYPE_VALUE)));
@@ -209,14 +211,18 @@ public class LocalKeyStorageProviderTest {
   private KeyDescriptor validateStoreAndRetrieve(
       MutableKeyStorage storage, Key key) throws Exception {
     final String id = UUID.randomUUID().toString();
-    storage.store(id, key);
-    final Key retrieved = storage.retrieve(id);
-    assertThat(retrieved, is(equalTo(key)));
+
+    final Metadata metadata = SimpleMetadata.builder().set("name", "value").build();
+    storage.store(id, new KeyWithMetadata(key, metadata));
+
+    final KeyWithMetadata retrieved = storage.retrieveWithMetadata(id);
+    assertThat(retrieved.getKey(), is(equalTo(key)));
+    assertThat(retrieved.getMetadata(), is(equalTo(metadata)));
 
     final Path path = parent.resolve(
-        id + PemEncoder.getInstance().getPathSuffix());
+        id + PemKeyEncoder.getInstance().getPathSuffix());
     try (final FileInputStream inputStream = new FileInputStream(path.toFile())) {
-      return PemEncoder.getInstance().decode(
+      return PemKeyEncoder.getInstance().decode(
           PemBlobEncoder.getInstance().decode(inputStream).get(0));
     }
   }

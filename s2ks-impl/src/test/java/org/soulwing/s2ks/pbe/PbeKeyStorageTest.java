@@ -34,12 +34,15 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.soulwing.s2ks.KeyStorageException;
 import org.soulwing.s2ks.base.Blob;
 import org.soulwing.s2ks.base.BlobEncoder;
 import org.soulwing.s2ks.base.KeyDescriptor;
 import org.soulwing.s2ks.base.KeyEncoder;
-import org.soulwing.s2ks.KeyStorageException;
 import org.soulwing.s2ks.base.KeyWrapOperator;
+import org.soulwing.s2ks.base.MetadataEncoder;
+import org.soulwing.s2ks.base.MetadataRecognizer;
+import org.soulwing.s2ks.base.MetadataWrapOperator;
 import org.soulwing.s2ks.base.StorageService;
 
 /**
@@ -59,10 +62,19 @@ public class PbeKeyStorageTest {
   private BlobEncoder blobEncoder;
 
   @Mock
+  private KeyWrapOperator keyWrapOperator;
+
+  @Mock
   private KeyEncoder keyEncoder;
 
   @Mock
-  private KeyWrapOperator keyWrapOperator;
+  private MetadataWrapOperator metadataWrapOperator;
+
+  @Mock
+  private MetadataEncoder metadataEncoder;
+
+  @Mock
+  private MetadataRecognizer metadataRecognizer;
 
   @Mock
   private StorageService storageService;
@@ -77,8 +89,9 @@ public class PbeKeyStorageTest {
 
   @Before
   public void setUp() throws Exception {
-    storage = new PbeKeyStorage(blobEncoder, keyEncoder,
-        keyWrapOperator, pbeKey, storageService);
+    storage = new PbeKeyStorage(blobEncoder, keyWrapOperator, keyEncoder,
+        metadataWrapOperator, metadataEncoder, metadataRecognizer,
+        pbeKey, storageService);
   }
 
   @Test

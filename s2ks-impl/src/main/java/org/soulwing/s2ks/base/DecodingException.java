@@ -1,5 +1,5 @@
 /*
- * File created on Mar 12, 2019
+ * File created on Mar 14, 2019
  *
  * Copyright (c) 2019 Carl Harris, Jr
  * and others as noted
@@ -16,21 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.soulwing.s2ks;
+package org.soulwing.s2ks.base;
+
+import org.soulwing.s2ks.KeyStorageException;
 
 /**
- * An exception thrown by to indicate that an
- * unexpected error (e.g. JCA exception) occurred while decoding a key.
+ * An exception thrown to indicate that an unexpected error occurred while
+ * decoding a blob.
  *
  * @author Carl Harris
  */
-public class KeyDecodeException extends KeyStorageException {
+public class DecodingException extends KeyStorageException {
 
-  public KeyDecodeException(String message) {
-    super(message);
+  public DecodingException(String message) {
+    this(message, null);
   }
 
-  public KeyDecodeException(String message, Throwable cause) {
+  public DecodingException(String message, Throwable cause) {
     super(message, cause);
   }
 

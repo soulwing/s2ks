@@ -22,6 +22,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.Matchers.startsWith;
 
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.jmock.Expectations;
+import org.jmock.Sequence;
 import org.jmock.auto.Mock;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Before;
@@ -48,6 +51,9 @@ import org.soulwing.s2ks.base.BlobEncoder;
 import org.soulwing.s2ks.base.KeyDescriptor;
 import org.soulwing.s2ks.base.KeyEncoder;
 import org.soulwing.s2ks.base.KeyWrapOperator;
+import org.soulwing.s2ks.base.MetadataEncoder;
+import org.soulwing.s2ks.base.MetadataRecognizer;
+import org.soulwing.s2ks.base.MetadataWrapOperator;
 import org.soulwing.s2ks.base.WrapperKeyResponse;
 
 /**
@@ -60,6 +66,8 @@ public class AbstractMutableKeyStorageTest {
   private static final String SUFFIX = ".suffix";
   private static final String ID = UUID.randomUUID().toString();
 
+  private final byte[] WRAPPED_METADATA = new byte[0];
+
   @Rule
   public final JUnitRuleMockery context = new JUnitRuleMockery();
 
@@ -70,16 +78,28 @@ public class AbstractMutableKeyStorageTest {
   private BlobEncoder blobEncoder;
 
   @Mock
-  private KeyEncoder keyEncoder;
+  private KeyWrapOperator keyWrapOperator;
 
   @Mock
-  private KeyWrapOperator keyWrapOperator;
+  private MetadataWrapOperator metadataWrapOperator;
+
+  @Mock
+  private MetadataEncoder metadataEncoder;
+
+  @Mock
+  private MetadataRecognizer metadataRecognizer;
+
+  @Mock
+  private KeyEncoder keyEncoder;
 
   @Mock
   private Key wrapperKey;
 
   @Mock
-  private Blob subjectBlob, wrapperBlob;
+  private Blob subjectBlob, wrapperBlob, metadataBlob;
+
+  @Mock
+  private Metadata metadata;
 
   private Key subjectKey = KeyUtil.aesKey(256);
 
@@ -104,7 +124,8 @@ public class AbstractMutableKeyStorageTest {
         .build(subjectKey.getEncoded());
 
     storage  = new MockKeyStorage(
-        blobEncoder, keyEncoder, keyWrapOperator, wrapperKey,
+        blobEncoder, keyWrapOperator, keyEncoder, metadataWrapOperator,
+        metadataEncoder, metadataRecognizer, wrapperKey,
         contentStream, subjectKeyDescriptor);
 
     context.checking(new Expectations() {
@@ -117,13 +138,20 @@ public class AbstractMutableKeyStorageTest {
 
   @Test
   public void testRetrieve() throws Exception {
+    final Sequence sequence = context.sequence("retrieveSequence");
     context.checking(new Expectations() {
       {
         oneOf(blobEncoder).decode(contentStream);
+        inSequence(sequence);
         will(returnValue(Collections.singletonList(subjectBlob)));
+        oneOf(metadataRecognizer).indexOfMetadata(Collections.singletonList(subjectBlob));
+        inSequence(sequence);
+        will(returnValue(-1));
         oneOf(keyEncoder).decode(subjectBlob);
+        inSequence(sequence);
         will(returnValue(subjectKeyDescriptor));
         oneOf(keyWrapOperator).unwrap(subjectKeyDescriptor, wrapperKey);
+        inSequence(sequence);
         will(returnValue(subjectKey));
       }
     });
@@ -131,6 +159,37 @@ public class AbstractMutableKeyStorageTest {
     final Key actual = storage.retrieve(ID);
     assertThat(actual, is(sameInstance(subjectKey)));
   }
+
+  @Test
+  public void testRetrieveWithMetadata() throws Exception {
+    final Sequence sequence = context.sequence("retrieveSequence");
+    final List<Blob> blobs = Arrays.asList(subjectBlob, metadataBlob);
+    context.checking(new Expectations() {
+      {
+        oneOf(blobEncoder).decode(contentStream);
+        inSequence(sequence);
+        will(returnValue(blobs));
+        oneOf(metadataRecognizer).indexOfMetadata(blobs);
+        inSequence(sequence);
+        will(returnValue(1));
+        oneOf(metadataEncoder).decode(metadataBlob);
+        will(returnValue(WRAPPED_METADATA));
+        oneOf(keyEncoder).decode(subjectBlob);
+        inSequence(sequence);
+        will(returnValue(subjectKeyDescriptor));
+        oneOf(keyWrapOperator).unwrap(subjectKeyDescriptor, wrapperKey);
+        inSequence(sequence);
+        will(returnValue(subjectKey));
+        oneOf(metadataWrapOperator).unwrap(subjectKey, WRAPPED_METADATA);
+        will(returnValue(metadata));
+      }
+    });
+
+    final KeyWithMetadata actual = storage.retrieveWithMetadata(ID);
+    assertThat(actual.getKey(), is(sameInstance(subjectKey)));
+    assertThat(actual.getMetadata(), is(sameInstance(metadata)));
+  }
+
 
   @Test
   public void testRetrieveWhenIOException() throws Exception {
@@ -184,6 +243,55 @@ public class AbstractMutableKeyStorageTest {
   }
 
   @Test
+  public void testStoreWithEmptyMetadata() throws Exception {
+    context.checking(new Expectations() {
+      {
+        oneOf(keyWrapOperator).wrap(subjectKey, wrapperKey);
+        will(returnValue(subjectKeyDescriptor));
+        oneOf(metadata).isEmpty();
+        will(returnValue(true));
+        oneOf(keyEncoder).encode(subjectKeyDescriptor);
+        will(returnValue(subjectBlob));
+      }
+    });
+
+    storage.store(ID, new KeyWithMetadata(subjectKey, metadata));
+
+    assertThat(storage.blobs, is(equalTo(Collections.singletonList(subjectBlob))));
+    assertThat(storage.path, startsWith(ID));
+    assertThat(storage.path, endsWith(SUFFIX));
+  }
+
+  @Test
+  public void testStoreWithMetadata() throws Exception {
+    final KeyWithMetadata keyWithMetadata =
+        new KeyWithMetadata(subjectKey, metadata);
+
+    context.checking(new Expectations() {
+      {
+        oneOf(keyWrapOperator).wrap(subjectKey, wrapperKey);
+        will(returnValue(subjectKeyDescriptor));
+        oneOf(metadata).isEmpty();
+        will(returnValue(false));
+        oneOf(metadataWrapOperator).wrap(keyWithMetadata);
+        will(returnValue(WRAPPED_METADATA));
+        oneOf(metadataEncoder).encode(WRAPPED_METADATA);
+        will(returnValue(metadataBlob));
+        oneOf(keyEncoder).encode(subjectKeyDescriptor);
+        will(returnValue(subjectBlob));
+      }
+    });
+
+    storage.store(ID, keyWithMetadata);
+
+    assertThat(storage.blobs, is(
+        equalTo(Arrays.asList(subjectBlob, metadataBlob))));
+    assertThat(storage.path, startsWith(ID));
+    assertThat(storage.path, endsWith(SUFFIX));
+  }
+
+
+  @Test
   public void testStoreWhenIncludesKeyDescriptor() throws Exception {
     context.checking(new Expectations() {
       {
@@ -228,6 +336,11 @@ public class AbstractMutableKeyStorageTest {
     assertThat(storage.path, startsWith(ID));
   }
 
+  @Test
+  public void testGetBlobEncoder() throws Exception {
+    assertThat(storage.getBlobEncoder(), is(not(nullValue())));
+  }
+
 
   private static class MockKeyStorage extends AbstractMutableKeyStorage {
 
@@ -240,11 +353,13 @@ public class AbstractMutableKeyStorageTest {
     private String path;
     private IOException ioException;
 
-    MockKeyStorage(BlobEncoder blobEncoder, KeyEncoder keyEncoder,
-        KeyWrapOperator keyWrapOperator, Key wrapperKey,
-        InputStream contentStream,
+    MockKeyStorage(BlobEncoder blobEncoder, KeyWrapOperator keyWrapOperator,
+        KeyEncoder keyEncoder, MetadataWrapOperator metadataWrapOperator,
+        MetadataEncoder metadataEncoder, MetadataRecognizer metadataRecognizer,
+        Key wrapperKey, InputStream contentStream,
         KeyDescriptor subjectKeyDescriptor) {
-      super(blobEncoder, keyEncoder, keyWrapOperator);
+      super(blobEncoder, keyWrapOperator, keyEncoder, metadataWrapOperator,
+          metadataEncoder, metadataRecognizer);
       this.wrapperKey = wrapperKey;
       this.contentStream = contentStream;
       this.subjectKeyDescriptor = subjectKeyDescriptor;

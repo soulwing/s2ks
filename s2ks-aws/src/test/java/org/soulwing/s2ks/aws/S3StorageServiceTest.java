@@ -19,7 +19,6 @@
 package org.soulwing.s2ks.aws;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
@@ -31,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
@@ -124,11 +122,6 @@ public class S3StorageServiceTest {
     });
 
     storageService.getContentStream(PATH);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testStoreContentWhenNotTwoBlobs() throws Exception {
-    storageService.storeContent(Collections.emptyList(), PATH);
   }
 
   @Test

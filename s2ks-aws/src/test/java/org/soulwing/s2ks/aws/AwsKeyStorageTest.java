@@ -36,17 +36,20 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.soulwing.s2ks.KeyStorageException;
+import org.soulwing.s2ks.KeyUnwrapException;
 import org.soulwing.s2ks.base.Blob;
 import org.soulwing.s2ks.base.BlobEncoder;
 import org.soulwing.s2ks.base.EncryptionKey;
 import org.soulwing.s2ks.base.KeyDescriptor;
 import org.soulwing.s2ks.base.KeyEncoder;
-import org.soulwing.s2ks.KeyStorageException;
-import org.soulwing.s2ks.KeyUnwrapException;
 import org.soulwing.s2ks.base.KeyWrapOperator;
 import org.soulwing.s2ks.base.MasterKeyService;
 import org.soulwing.s2ks.base.StorageService;
 import org.soulwing.s2ks.base.WrapperKeyResponse;
+import org.soulwing.s2ks.metadata.JwtMetadataWrapOperator;
+import org.soulwing.s2ks.pem.PemMetadataEncoder;
+import org.soulwing.s2ks.pem.PemMetadataRecognizer;
 
 /**
  * Unit tests for {@link AwsKeyStorage}.
@@ -85,8 +88,8 @@ public class AwsKeyStorageTest {
 
   @Before
   public void setUp() throws Exception {
-    storage = new AwsKeyStorage(blobEncoder, keyEncoder,
-        keyWrapOperator, masterKeyService, storageService);
+    storage = new AwsKeyStorage(blobEncoder, keyWrapOperator, keyEncoder,
+        JwtMetadataWrapOperator.getInstance(), PemMetadataEncoder.getInstance(), PemMetadataRecognizer.getInstance(), masterKeyService, storageService);
   }
 
   @Test

@@ -42,4 +42,20 @@ public interface MutableKeyStorage extends KeyStorage {
   void store(String id, Key key)
       throws KeyWrapException, KeyStorageException;
 
+  /**
+   * Stores a key and associated metadata using the given identifier, replacing
+   * any existing key and metadata with the same identifier.
+   *
+   * @param id identifier for the subject key
+   * @param keyWithMetadata the subject key and metadata
+   * @throws KeyWrapException if an error occurs in wrapping the key;
+   *    e.g. one of the myriad checked exceptions thrown by the JCA API
+   * @throws MetadataWrapException if an error occurs in encoding the
+   *    metadata
+   * @throws KeyStorageException if the underlying storage mechanism cannot
+   *    successfully write the wrapped key to persistent storage
+   */
+  void store(String id, KeyWithMetadata keyWithMetadata)
+      throws KeyWrapException, KeyStorageException;
+
 }

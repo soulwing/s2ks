@@ -1,5 +1,5 @@
 /*
- * File created on Mar 13, 2019
+ * File created on Mar 14, 2019
  *
  * Copyright (c) 2019 Carl Harris, Jr
  * and others as noted
@@ -19,27 +19,20 @@
 package org.soulwing.s2ks.base;
 
 /**
- * An operator that performs key encoding and decoding operations.
+ * An operator that performs metadata encoding and decoding operations.
  *
  * @author Carl Harris
  */
-public interface KeyEncoder {
+public interface MetadataEncoder {
 
   /**
-   * Gets the path name suffix that best describes a file containing a blob
-   * produced by the {@link #encode(KeyDescriptor)} method.
-   * @return path suffix
-   */
-  String getPathSuffix();
-
-  /**
-   * Encodes the information in the given key descriptor as an opaque blob.
-   * @param descriptor description of the key to be encoded
+   * Encodes the information in the given wrapped metadata as an opaque blob.
+   * @param metadata wrapped metadata to be encoded
    * @return the resulting blob
    * @throws EncodingException if an error occurs in encoding the key;
    *    typically wraps a checked exception from an underlying provider
    */
-  Blob encode(KeyDescriptor descriptor) throws EncodingException;
+  Blob encode(byte[] metadata) throws EncodingException;
 
   /**
    * Decodes a blob representation of a key to recover a descriptor for the
@@ -49,6 +42,8 @@ public interface KeyEncoder {
    * @throws DecodingException if an error occurs in decoding the key;
    *    typically wraps a checked exception from an underlying provider
    */
-  KeyDescriptor decode(Blob blob) throws DecodingException;
+  byte[] decode(Blob blob) throws DecodingException;
+
+
 
 }

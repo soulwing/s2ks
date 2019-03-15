@@ -33,15 +33,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.soulwing.s2ks.KeyUtil;
 import org.soulwing.s2ks.base.Blob;
-import org.soulwing.s2ks.KeyDecodeException;
+import org.soulwing.s2ks.base.DecodingException;
 import org.soulwing.s2ks.base.KeyDescriptor;
 
 /**
- * Unit tests for {@link PemEncoder}.
+ * Unit tests for {@link PemKeyEncoder}.
  *
  * @author Carl Harris
  */
-public class PemEncoderTest {
+public class PemKeyEncoderTest {
 
   @Rule
   public final JUnitRuleMockery context = new JUnitRuleMockery();
@@ -51,15 +51,15 @@ public class PemEncoderTest {
 
   @Test
   public void testGetPathSuffix() throws Exception {
-    assertThat(PemEncoder.getInstance().getPathSuffix(),
-        is(equalTo(PemEncoder.SUFFIX)));
+    assertThat(PemKeyEncoder.getInstance().getPathSuffix(),
+        is(equalTo(PemKeyEncoder.SUFFIX)));
   }
 
   @Test
   public void testEncode() throws Exception {
     final byte[] data = KeyUtil.randomKeyData(246);
 
-    final Blob blob = PemEncoder.getInstance().encode(
+    final Blob blob = PemKeyEncoder.getInstance().encode(
         KeyDescriptor.builder()
             .algorithm("ALG")
             .type(KeyDescriptor.Type.SECRET)
@@ -86,7 +86,7 @@ public class PemEncoderTest {
     final PemObject object =
         new PemObject(type, Collections.singletonList(header), data);
 
-    final KeyDescriptor descriptor = PemEncoder.getInstance()
+    final KeyDescriptor descriptor = PemKeyEncoder.getInstance()
         .decode(new PemBlob(object));
 
     assertThat(descriptor.getAlgorithm(), is(equalTo("ALG")));
@@ -96,13 +96,13 @@ public class PemEncoderTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testDecodeWithNonPemBlob() throws Exception {
-    PemEncoder.getInstance().decode(otherBlob);
+    PemKeyEncoder.getInstance().decode(otherBlob);
   }
 
-  @Test(expected = KeyDecodeException.class)
+  @Test(expected = DecodingException.class)
   public void testDecodeWithUnsupportedType() throws Exception {
     final PemObject object = new PemObject("SOME OTHER TYPE", new byte[0]);
-    PemEncoder.getInstance().decode(new PemBlob(object));
+    PemKeyEncoder.getInstance().decode(new PemBlob(object));
   }
 
 
