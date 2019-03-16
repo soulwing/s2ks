@@ -30,8 +30,6 @@ import org.soulwing.s2ks.pem.PemKeyEncoder;
 import org.soulwing.s2ks.pem.PemMetadataEncoder;
 import org.soulwing.s2ks.pem.PemMetadataRecognizer;
 import org.soulwing.s2ks.spi.KeyStorageProvider;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.amazonaws.services.kms.model.DataKeySpec;
@@ -49,8 +47,6 @@ public class AwsKeyStorageProvider implements KeyStorageProvider {
   static final DataKeySpec DEFAULT_DATA_KEY_SPEC = DataKeySpec.AES_256;
 
   static final String NAME = "AWS";
-  static final String CREDENTIALS_PROVIDER = "credentialsProvider";
-  static final String REGION = "region";
   static final String KMS_MASTER_KEY_ID = "kmsMasterKeyId";
   static final String KMS_DATA_KEY_SPEC = "kmsDataKeySpec";
   static final String S3_BUCKET_NAME = "s3BucketName";
@@ -69,18 +65,18 @@ public class AwsKeyStorageProvider implements KeyStorageProvider {
 
   @Override
   public KeyStorage getInstance(Properties properties) throws Exception {
-    final AWSCredentialsProvider credentialsProvider =
-        credentialsProvider(properties);
-    final Regions region = getRegion(properties);
-
-    return new AwsKeyStorage(PemBlobEncoder.getInstance(),
-        AesWrapOperator.getInstance(), PemKeyEncoder.getInstance(),
-        JwtMetadataWrapOperator.getInstance(), PemMetadataEncoder.getInstance(), PemMetadataRecognizer.getInstance(), newMasterKeyService(properties, credentialsProvider, region),
-        newStorageService(properties, credentialsProvider, region));
+    return new AwsKeyStorage(
+        PemBlobEncoder.getInstance(),
+        AesWrapOperator.getInstance(),
+        PemKeyEncoder.getInstance(),
+        JwtMetadataWrapOperator.getInstance(),
+        PemMetadataEncoder.getInstance(),
+        PemMetadataRecognizer.getInstance(),
+        newMasterKeyService(properties),
+        newStorageService(properties));
   }
 
-  private MasterKeyService newMasterKeyService(Properties properties,
-      AWSCredentialsProvider credentialsProvider, Regions region) {
+  private MasterKeyService newMasterKeyService(Properties properties) {
     final String masterKeyId =
         getRequiredProperty(KMS_MASTER_KEY_ID, properties);
 
@@ -88,43 +84,21 @@ public class AwsKeyStorageProvider implements KeyStorageProvider {
         properties.getProperty(KMS_DATA_KEY_SPEC,
             DEFAULT_DATA_KEY_SPEC.name()));
 
-    final AWSKMS kmsClient = AWSKMSClientBuilder.standard()
-        .withRegion(region)
-        .withCredentials(credentialsProvider)
-        .build();
+    final AWSKMS kmsClient = AWSKMSClientBuilder.standard().build();
 
     return new KmsMasterKeyService(kmsClient, masterKeyId, dataKeySpec);
   }
 
-  private StorageService newStorageService(Properties properties,
-      AWSCredentialsProvider credentialsProvider, Regions region) {
+  private StorageService newStorageService(Properties properties) {
 
     final String bucketName =
         getRequiredProperty(S3_BUCKET_NAME, properties);
     final String prefix = properties.getProperty(S3_PREFIX, "");
 
-    final AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
-        .withRegion(region)
-        .withCredentials(credentialsProvider)
-        .build();
+    final AmazonS3 s3Client = AmazonS3ClientBuilder.standard().build();
 
     return new S3StorageService(s3Client, bucketName, prefix,
         PemBlobEncoder.getInstance());
-  }
-
-  private AWSCredentialsProvider credentialsProvider(Properties properties) {
-    final Object credentialsProvider = properties.get(CREDENTIALS_PROVIDER);
-    if (credentialsProvider instanceof AWSCredentialsProvider) {
-      return (AWSCredentialsProvider) credentialsProvider;
-    }
-
-    throw new IllegalArgumentException("the `" + CREDENTIALS_PROVIDER
-        + "` property must hold an instance of "
-        + AWSCredentialsProvider.class.getSimpleName());
-  }
-
-  private Regions getRegion(Properties properties) {
-    return Regions.valueOf(getRequiredProperty(REGION, properties));
   }
 
   private String getRequiredProperty(String name, Properties properties) {

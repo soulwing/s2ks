@@ -179,31 +179,26 @@ You'll also need to configure the access key on your workstation the same as you
 would to use the AWS CLI; using [named profiles](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
 or [environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html).
 These methods make the access key and associated secret available to the 
-example when it runs.
+example when it runs. If you used a named profile other than _default_ you
+will need to set the `AWS_PROFILE` environment variable to the name of the
+profile for the demo.
+
+You will also need to specify the AWS region either via the profile or using the
+`AWS_REGION` environment variable.
 
 Once everything is set up, you should be able to run the example, by 
 modifying the constants shown here to match what you set up in your AWS 
-account. The example as written assumes you created a named profile with
-your access key and secret; if you want to set up environment variables
-instead, simply use `EnvironmentVariableCredentialsProvider` instead of the 
-`ProfileCredentialsProvider`.
+account. 
 
 ```java
 class AwsDemo {
 
-  static final String REGION = "US_EAST_1";
-  static final String IAM_PROFILE = "PROFILE NAME HERE";
   static final String KMS_MASTER_KEY_ID = "alias/s2ks-demo";
   static final String S3_BUCKET_NAME = "BUCKET NAME HERE";
   static final String S3_PREFIX = "keys";
 
   public static void main(String[] args) throws Exception {
-    AWSCredentialsProvider credentialsProvider =
-        new ProfileCredentialsProvider(IAM_PROFILE);
-
     Properties properties = new Properties();
-    properties.put("credentialsProvider", credentialsProvider);
-    properties.setProperty("region", REGION);
     properties.setProperty("kmsMasterKeyId", KMS_MASTER_KEY_ID);
     properties.setProperty("s3BucketName", S3_BUCKET_NAME);
     properties.setProperty("s3Prefix", S3_PREFIX);
