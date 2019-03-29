@@ -152,7 +152,9 @@ public class LocalKeyStorageProvider implements KeyStorageProvider {
         length++;
       }
 
-      return Arrays.copyOfRange(buf, 0, length);
+      final char[] password = Arrays.copyOfRange(buf, 0, length);
+      Arrays.fill(buf, (char) 0);
+      return password;
     }
 
   }
