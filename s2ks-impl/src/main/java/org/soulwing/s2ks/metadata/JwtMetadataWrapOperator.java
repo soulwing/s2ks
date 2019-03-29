@@ -84,7 +84,7 @@ public class JwtMetadataWrapOperator implements MetadataWrapOperator {
       throws MetadataUnwrapException {
     try {
       return claimsToMetadata(provider.validator()
-          .signatureValidation(signatureOperator(deriveValidationKey(key)))
+          .signatureOperator(signatureOperator(deriveValidationKey(key)))
           .claimsAssertions(provider.assertions().build())
           .clock(Clock.systemUTC())
           .build()
