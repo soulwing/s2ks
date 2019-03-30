@@ -18,6 +18,9 @@
  */
 package org.soulwing.s2ks;
 
+import java.security.cert.X509Certificate;
+import java.util.List;
+
 /**
  * A service that provides storage for key pairs.
  *
@@ -41,15 +44,29 @@ public interface KeyPairStorage {
   String CA_FILE_NAME = "cacerts.pem";
 
   /**
-   * Retrieves the private key with the given identifier.
-   * @param id identifier of the key to retrieve
-   * @return private key
-   * @throws NoSuchKeyException if there exists no private key with the
-   *    given identifier
+   * Retrieves the key pair with the given identifier.
+   * @param id identifier of the key pair to retrieve
+   * @return key pair info
+   * @throws NoSuchKeyException if there exists no key pair with the given ID
    * @throws KeyStorageException if an unexpected error occurs in loading
    *    the key from storage
    */
-  KeyPairInfo retrieve(String id)
+  KeyPairInfo retrieveKeyPair(String id)
+      throws NoSuchKeyException, KeyStorageException;
+
+  /**
+   * Retrieves the certificates associated for a key pair.
+   * <p>
+   * This method can be used in situations in which the private key is not
+   * needed or is not available.
+   *
+   * @param id identifier of the key pair whose certificates are to be retrieved
+   * @return certificate chain
+   * @throws NoSuchKeyException if there exists no key pair with the given ID
+   * @throws KeyStorageException if an unexpected error occurs in loading the
+   *    key from storage
+   */
+  List<X509Certificate> retrieveCertificates(String id)
       throws NoSuchKeyException, KeyStorageException;
 
 }

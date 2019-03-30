@@ -48,6 +48,7 @@ import org.soulwing.s2ks.FilesUtil;
 import org.soulwing.s2ks.KeyPairInfo;
 import org.soulwing.s2ks.KeyPairStorage;
 import org.soulwing.s2ks.KeyStorageException;
+import org.soulwing.s2ks.NoSuchKeyException;
 import org.soulwing.s2ks.base.CertificateLoader;
 import org.soulwing.s2ks.base.PasswordWriter;
 import org.soulwing.s2ks.base.PrivateKeyLoader;
@@ -116,32 +117,25 @@ public class LocalKeyPairStorageTest {
   }
 
   @Test
-  public void testRetrieveWithPassword() throws Exception {
+  public void testRetrieveKeyWithPassword() throws Exception {
     final X509Certificate cert = loadCerts("cert.pem").get(0);
     final List<X509Certificate> cacerts = loadCerts("cacerts.pem");
     final List<X509Certificate> chain = new ArrayList<>();
     chain.add(cert);
     chain.addAll(cacerts);
-    validateRetrieve(null, PASSWORD, chain);
+    validateRetrieveKey(null, PASSWORD, chain);
   }
 
   @Test
-  public void testRetrieveWhenNoCACerts() throws Exception {
-    Files.deleteIfExists(caFile);
-    final X509Certificate cert = loadCerts("cert.pem").get(0);
-    validateRetrieve(null, PASSWORD, Collections.singletonList(cert));
-  }
-
-  @Test
-  public void testRetrieveWithPasswordFile() throws Exception {
+  public void testRetrieveKeyWithPasswordFile() throws Exception {
     Files.deleteIfExists(caFile);
     final X509Certificate cert = loadCerts("cert.pem").get(0);
     final Path passwordFile = Files.createTempFile(PASSWORD_PATH, "");
     PasswordWriter.writePassword(PASSWORD, passwordFile.toFile());
-    validateRetrieve(passwordFile, null, Collections.singletonList(cert));
+    validateRetrieveKey(passwordFile, null, Collections.singletonList(cert));
   }
 
-  private void validateRetrieve(Path passwordFile,
+  private void validateRetrieveKey(Path passwordFile,
       String password, List<X509Certificate> chain) throws Exception {
 
     final LocalKeyPairStorage storage = newStorage(passwordFile, password);
@@ -151,23 +145,18 @@ public class LocalKeyPairStorageTest {
         oneOf(privateKeyLoader).load(with(any(InputStream.class)),
             with(PASSWORD.toCharArray()));
         will(returnValue(keyPair.getPrivate()));
-        oneOf(certificateLoader).load(with(any(InputStream.class)));
-        will(returnValue(chain.subList(0, 1)));
-        if (chain.size() > 1) {
-          oneOf(certificateLoader).load(with(any(InputStream.class)));
-          will(returnValue(chain.subList(1, chain.size())));
-        }
       }
     });
+    context.checking(certificateChainExpectations(chain));
 
-    final KeyPairInfo kpi = storage.retrieve(KEY_PAIR_ID);
+    final KeyPairInfo kpi = storage.retrieveKeyPair(KEY_PAIR_ID);
     assertThat(kpi.getId(), is(equalTo(KEY_PAIR_ID)));
     assertThat(kpi.getPrivateKey(), is(sameInstance(keyPair.getPrivate())));
     assertThat(kpi.getCertificates(), is(equalTo(chain)));
   }
 
   @Test
-  public void testRetrieveWithPrivateKeyIOException() throws Exception {
+  public void testRetrieveKeyWhenPrivateKeyIOException() throws Exception {
     final LocalKeyPairStorage storage = newStorage(null, PASSWORD);
     final IOException ex = new IOException();
 
@@ -181,8 +170,40 @@ public class LocalKeyPairStorageTest {
 
     expectedException.expect(KeyStorageException.class);
     expectedException.expectCause(is(sameInstance(ex)));
-    storage.retrieve(KEY_PAIR_ID);
+    storage.retrieveKeyPair(KEY_PAIR_ID);
   }
+
+  @Test
+  public void testRetrieveCertificates() throws Exception {
+    final List<X509Certificate> chain = new ArrayList<>();
+    chain.add(loadCerts("cert.pem").get(0));
+    chain.addAll(loadCerts("cacerts.pem"));
+    validateRetrieveCertificates(chain);
+  }
+
+  @Test(expected = NoSuchKeyException.class)
+  public void testRetrieveCertificatesWhenNotFound() throws Exception {
+    Files.deleteIfExists(certFile);
+    final LocalKeyPairStorage storage = newStorage(null, PASSWORD);
+    storage.retrieveCertificates(KEY_PAIR_ID);
+  }
+
+
+  @Test
+  public void testRetrieveCertificatesWhenNoCACerts() throws Exception {
+    Files.deleteIfExists(caFile);
+    final X509Certificate cert = loadCerts("cert.pem").get(0);
+    final List<X509Certificate> chain = Collections.singletonList(cert);
+    validateRetrieveCertificates(chain);
+  }
+
+  private void validateRetrieveCertificates(List<X509Certificate> chain)
+      throws Exception {
+    final LocalKeyPairStorage storage = newStorage(null, PASSWORD);
+    context.checking(certificateChainExpectations(chain));
+    assertThat(storage.retrieveCertificates(KEY_PAIR_ID), is(equalTo(chain)));
+  }
+
 
   private List<X509Certificate> loadCerts(String name) throws Exception {
     try (final InputStream inputStream =
@@ -199,6 +220,20 @@ public class LocalKeyPairStorageTest {
     return new LocalKeyPairStorage(
         privateKeyLoader, certificateLoader, storagePath, passwordFile,
         password);
+  }
+
+  private Expectations certificateChainExpectations(
+      List<X509Certificate> chain) throws Exception {
+    return new Expectations() {
+      {
+        oneOf(certificateLoader).load(with(any(InputStream.class)));
+        will(returnValue(chain.subList(0, 1)));
+        if (chain.size() > 1) {
+          oneOf(certificateLoader).load(with(any(InputStream.class)));
+          will(returnValue(chain.subList(1, chain.size())));
+        }
+      }
+    };
   }
 
 

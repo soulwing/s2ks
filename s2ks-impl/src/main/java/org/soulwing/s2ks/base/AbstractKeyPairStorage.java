@@ -50,7 +50,7 @@ public abstract class AbstractKeyPairStorage implements KeyPairStorage {
   }
 
   @Override
-  public KeyPairInfo retrieve(String id) throws KeyStorageException {
+  public KeyPairInfo retrieveKeyPair(String id) throws KeyStorageException {
     char[] password = null;
     try {
       password = getPassword();
@@ -70,6 +70,20 @@ public abstract class AbstractKeyPairStorage implements KeyPairStorage {
       if (password != null) {
         Arrays.fill(password, (char) 0);
       }
+    }
+  }
+
+  @Override
+  public List<X509Certificate> retrieveCertificates(String id)
+      throws KeyStorageException {
+    try {
+      return loadCertificates(id);
+    }
+    catch (FileNotFoundException ex) {
+      throw new NoSuchKeyException(id);
+    }
+    catch (IOException ex) {
+      throw new KeyStorageException(ex);
     }
   }
 
