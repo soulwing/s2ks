@@ -43,13 +43,14 @@ public class FilesUtil {
           if (Files.isDirectory(path)) {
             recursivelyDelete(path);
           }
-          Files.delete(path);
+          Files.deleteIfExists(path);
         }
         catch (IOException ex) {
           throw new RuntimeException(ex);
         }
       });
     }
+    Files.deleteIfExists(directory);
   }
 
 }

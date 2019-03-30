@@ -18,11 +18,8 @@
  */
 package org.soulwing.s2ks.local;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -30,8 +27,8 @@ import java.util.Optional;
 import java.util.Properties;
 
 import org.soulwing.s2ks.KeyStorage;
+import org.soulwing.s2ks.base.PasswordReader;
 import org.soulwing.s2ks.base.StorageService;
-import org.soulwing.s2ks.filesystem.FilesystemStorageService;
 import org.soulwing.s2ks.metadata.JwtMetadataWrapOperator;
 import org.soulwing.s2ks.pbe.PbeKeyFactory;
 import org.soulwing.s2ks.pbe.PbeKeyStorage;
@@ -73,7 +70,7 @@ public class LocalKeyStorageProvider implements KeyStorageProvider {
     final char[] password = getPassword(properties);
 
     final StorageService storageService =
-        new FilesystemStorageService(directory, PemBlobEncoder.getInstance());
+        new LocalStorageService(directory, PemBlobEncoder.getInstance());
 
     final PbeKeyStorage storage = new PbeKeyStorage(
         PemBlobEncoder.getInstance(),
@@ -125,38 +122,7 @@ public class LocalKeyStorageProvider implements KeyStorageProvider {
   private char[] getPasswordFromFile(Properties properties) throws IOException {
     final String path = properties.getProperty(PASSWORD_FILE);
     if (path == null) return new char[0];
-    return readPassword(path);
-  }
-
-  /**
-   * Reads a password from a file at the given path.
-   * <p>
-   * The sequence of characters leading up to the first newline character or
-   * at most {@link #BUFFER_SIZE} characters are used as the password.
-   *
-   * @param path path of the file to read
-   * @return password array (possibly empty, but not null)
-   * @throws IOException if an error occurs in reading the file
-   */
-  char[] readPassword(String path) throws IOException {
-    try (Reader reader = new InputStreamReader(
-        new FileInputStream(path), StandardCharsets.US_ASCII)) {
-      final char[] buf = new char[BUFFER_SIZE];
-      int numRead = reader.read(buf);
-      if (numRead == buf.length && reader.read() != -1) {
-        throw new IllegalArgumentException(
-            "password must not be longer than " + buf.length + " characters");
-      }
-      int length = 0;
-      while (length < numRead && buf[length] != '\r' && buf[length] != '\n') {
-        length++;
-      }
-
-      final char[] password = Arrays.copyOfRange(buf, 0, length);
-      Arrays.fill(buf, (char) 0);
-      return password;
-    }
-
+    return PasswordReader.readPassword(new File(path));
   }
 
 }

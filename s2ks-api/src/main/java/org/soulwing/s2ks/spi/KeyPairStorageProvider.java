@@ -1,5 +1,5 @@
 /*
- * File created on Mar 12, 2019
+ * File created on Mar 30, 2019
  *
  * Copyright (c) 2019 Carl Harris, Jr
  * and others as noted
@@ -16,22 +16,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.soulwing.s2ks;
+package org.soulwing.s2ks.spi;
+
+import java.util.Properties;
+
+import org.soulwing.s2ks.KeyPairStorage;
 
 /**
- * An exception thrown when an provider instance cannot be created because of
- * a configuration problem.
+ * A service provider of {@link KeyPairStorage}.
  *
  * @author Carl Harris
  */
-public class ProviderConfigurationException extends RuntimeException {
+public interface KeyPairStorageProvider {
 
-  public ProviderConfigurationException(String message) {
-    this(message, null);
-  }
+  /**
+   * Gets the name of this provider.
+   * @return provider name
+   */
+  String getName();
 
-  public ProviderConfigurationException(String message, Throwable cause) {
-    super(message, cause);
-  }
+  /**
+   * Gets a key pair storage instance from this provider.
+   * @param configuration configuration properties
+   * @return key storage instance
+   * @throws Exception to indicate that an instance could not be initialized
+   */
+  KeyPairStorage getInstance(Properties configuration) throws Exception;
 
 }

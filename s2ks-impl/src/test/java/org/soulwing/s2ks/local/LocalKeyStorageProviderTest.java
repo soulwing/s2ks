@@ -25,11 +25,6 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Key;
@@ -53,6 +48,7 @@ import org.soulwing.s2ks.ProviderConfigurationException;
 import org.soulwing.s2ks.SimpleMetadata;
 import org.soulwing.s2ks.base.AbstractKeyWrapOperator;
 import org.soulwing.s2ks.base.KeyDescriptor;
+import org.soulwing.s2ks.base.PasswordWriter;
 import org.soulwing.s2ks.pem.PemBlobEncoder;
 import org.soulwing.s2ks.pem.PemKeyEncoder;
 
@@ -125,7 +121,9 @@ public class LocalKeyStorageProviderTest {
   @Test
   public void testGetInstanceWithPasswordFile() throws Exception {
     final Properties properties = new Properties();
-    final Path path = createPasswordFile("secret");
+    final Path path = Files.createTempFile("password", "");
+    PasswordWriter.writePassword("secret", path.toFile());
+
     properties.setProperty(LocalKeyStorageProvider.PASSWORD_FILE,
         path.toString());
     properties.setProperty(LocalKeyStorageProvider.STORAGE_DIRECTORY,
@@ -225,46 +223,6 @@ public class LocalKeyStorageProviderTest {
       return PemKeyEncoder.getInstance().decode(
           PemBlobEncoder.getInstance().decode(inputStream).get(0));
     }
-  }
-
-  @Test()
-  public void testReadFullyWithTooMuchData() throws Exception {
-    final char[] password = new char[LocalKeyStorageProvider.BUFFER_SIZE + 1];
-    final Path path = createPasswordFile(password);
-    try {
-      expectedException.expect(IllegalArgumentException.class);
-      expectedException.expectMessage("password");
-      new LocalKeyStorageProvider().readPassword(path.toString());
-    }
-    finally {
-      Files.delete(path);
-    }
-  }
-
-  @Test
-  public void testReadFullyWithMaxLengthPassword() throws Exception {
-    final char[] password = new char[LocalKeyStorageProvider.BUFFER_SIZE];
-    final Path path = createPasswordFile(password);
-    try {
-      new LocalKeyStorageProvider().readPassword(path.toString());
-    }
-    finally {
-      Files.delete(path);
-    }
-  }
-
-  private Path createPasswordFile(String password) throws IOException {
-    return createPasswordFile(password.toCharArray());
-  }
-
-  private Path createPasswordFile(char[] password)
-      throws IOException {
-    final Path path = Files.createTempFile("password", ".txt");
-    try (final Writer writer = new OutputStreamWriter(
-        new FileOutputStream(path.toFile()), StandardCharsets.UTF_8)) {
-      writer.write(password);
-    }
-    return path;
   }
 
 }

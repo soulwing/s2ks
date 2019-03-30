@@ -1,5 +1,5 @@
 /*
- * File created on Mar 12, 2019
+ * File created on Mar 30, 2019
  *
  * Copyright (c) 2019 Carl Harris, Jr
  * and others as noted
@@ -16,22 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.soulwing.s2ks;
+package org.soulwing.s2ks.base;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.cert.X509Certificate;
+import java.util.List;
+
+import org.soulwing.s2ks.KeyStorageException;
 
 /**
- * An exception thrown when an provider instance cannot be created because of
- * a configuration problem.
+ * A service that loads a certificate chain from an input stream.
  *
  * @author Carl Harris
  */
-public class ProviderConfigurationException extends RuntimeException {
+public interface CertificateLoader {
 
-  public ProviderConfigurationException(String message) {
-    this(message, null);
-  }
-
-  public ProviderConfigurationException(String message, Throwable cause) {
-    super(message, cause);
-  }
+  List<X509Certificate> load(InputStream inputStream)
+      throws KeyStorageException, IOException;
 
 }

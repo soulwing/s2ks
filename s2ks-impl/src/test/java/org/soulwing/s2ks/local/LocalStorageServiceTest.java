@@ -1,5 +1,5 @@
 /*
- * File created on Mar 12, 2019
+ * File created on Mar 30, 2019
  *
  * Copyright (c) 2019 Carl Harris, Jr
  * and others as noted
@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.soulwing.s2ks.filesystem;
+package org.soulwing.s2ks.local;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -39,17 +39,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.soulwing.s2ks.base.Blob;
-import org.soulwing.s2ks.base.BlobEncoder;
 import org.soulwing.s2ks.FilesUtil;
 import org.soulwing.s2ks.KeyUtil;
+import org.soulwing.s2ks.base.Blob;
+import org.soulwing.s2ks.base.BlobEncoder;
 
 /**
- * Unit tests for {@link FilesystemStorageService}.
+ * Unit tests for {@link LocalStorageService}.
  *
  * @author Carl Harris
  */
-public class FilesystemStorageServiceTest {
+public class LocalStorageServiceTest {
 
   @Rule
   public final JUnitRuleMockery context = new JUnitRuleMockery();
@@ -64,13 +64,13 @@ public class FilesystemStorageServiceTest {
 
   private Path parent, directory;
 
-  private FilesystemStorageService storageService;
+  private LocalStorageService storageService;
 
   @Before
   public void setUp() throws Exception {
     parent = Files.createTempDirectory(getClass().getSimpleName());
     directory = parent.resolve("a/b/c");
-    storageService = new FilesystemStorageService(
+    storageService = new LocalStorageService(
         directory, blobEncoder);
   }
 

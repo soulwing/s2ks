@@ -1,5 +1,5 @@
 /*
- * File created on Mar 12, 2019
+ * File created on Mar 30, 2019
  *
  * Copyright (c) 2019 Carl Harris, Jr
  * and others as noted
@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.soulwing.s2ks.filesystem;
+package org.soulwing.s2ks.local;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -40,7 +40,7 @@ import org.soulwing.s2ks.pbe.PbeKeyStorage;
  *
  * @author Carl Harris
  */
-public class FilesystemStorageService implements StorageService {
+public class LocalStorageService implements StorageService {
 
   private static final Logger logger =
       LoggerFactory.getLogger(PbeKeyStorage.class);
@@ -48,7 +48,7 @@ public class FilesystemStorageService implements StorageService {
   private final Path directory;
   private final BlobEncoder blobEncoder;
 
-  public FilesystemStorageService(Path directory, BlobEncoder blobEncoder) {
+  public LocalStorageService(Path directory, BlobEncoder blobEncoder) {
     this.directory = directory;
     this.blobEncoder = blobEncoder;
   }
