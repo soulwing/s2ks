@@ -84,8 +84,6 @@ public class LocalKeyPairStorageTest {
   private CertificateLoader certificateLoader;
 
   private Path storagePath;
-  private Path keyPath;
-  private Path keyFile;
   private Path certFile;
   private Path caFile;
 
@@ -99,8 +97,8 @@ public class LocalKeyPairStorageTest {
   @Before
   public void setUp() throws Exception {
     storagePath = Files.createTempDirectory(STORAGE_PATH);
-    keyPath = storagePath.resolve(KEY_PAIR_ID);
-    keyFile = keyPath.resolve(KeyPairStorage.KEY_FILE_NAME);
+    Path keyPath = storagePath.resolve(KEY_PAIR_ID);
+    Path keyFile = keyPath.resolve(KeyPairStorage.KEY_FILE_NAME);
     certFile = keyPath.resolve(KeyPairStorage.CERT_FILE_NAME);
     caFile = keyPath.resolve(KeyPairStorage.CA_FILE_NAME);
     Files.createDirectory(keyPath);
@@ -215,15 +213,14 @@ public class LocalKeyPairStorageTest {
     }
   }
 
-  private LocalKeyPairStorage newStorage(Path passwordFile,
-      String password) throws IOException {
+  private LocalKeyPairStorage newStorage(Path passwordFile, String password) {
     return new LocalKeyPairStorage(
         privateKeyLoader, certificateLoader, storagePath, passwordFile,
         password);
   }
 
-  private Expectations certificateChainExpectations(
-      List<X509Certificate> chain) throws Exception {
+  private Expectations certificateChainExpectations(List<X509Certificate> chain)
+      throws Exception {
     return new Expectations() {
       {
         oneOf(certificateLoader).load(with(any(InputStream.class)));
@@ -235,6 +232,5 @@ public class LocalKeyPairStorageTest {
       }
     };
   }
-
 
 }

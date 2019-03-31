@@ -109,24 +109,28 @@ class AwsKeyPairStorage extends AbstractKeyPairStorage {
   }
 
   @Override
-  protected InputStream openPrivateKeyStream(String id) throws IOException {
+  protected InputStream openPrivateKeyStream(String id)
+      throws KeyStorageException, IOException {
     return openStreamToS3Object(
         Paths.get(prefix, id, KeyPairStorage.KEY_FILE_NAME).toString());
   }
 
   @Override
-  protected InputStream openCertificateStream(String id) throws IOException {
+  protected InputStream openCertificateStream(String id)
+      throws KeyStorageException, IOException {
     return openStreamToS3Object(
         Paths.get(prefix, id, KeyPairStorage.CERT_FILE_NAME).toString());
   }
 
   @Override
-  protected InputStream openCACertificateStream(String id) throws IOException {
+  protected InputStream openCACertificateStream(String id)
+      throws KeyStorageException, IOException {
     return openStreamToS3Object(
         Paths.get(prefix, id, KeyPairStorage.CA_FILE_NAME).toString());
   }
 
-  private InputStream openStreamToS3Object(String path) throws IOException {
+  private InputStream openStreamToS3Object(String path)
+      throws KeyStorageException, IOException {
     try {
       final S3Object object = s3Client.getObject(bucketName, path);
       return object.getObjectContent();
@@ -135,7 +139,7 @@ class AwsKeyPairStorage extends AbstractKeyPairStorage {
       if ("NoSuchKey".equals(ex.getErrorCode())) {
         throw new FileNotFoundException(path);
       }
-      throw new IOException(ex.getMessage(), ex);
+      throw new KeyStorageException(ex.getMessage(), ex);
     }
   }
 

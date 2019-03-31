@@ -125,10 +125,12 @@ public abstract class AbstractKeyPairStorage implements KeyPairStorage {
    * @return input stream
    * @throws FileNotFoundException if the given identifier does not refer to
    *    an existing private key
+   * @throws KeyStorageException if an unexpected error occurs in opening the
+   *    stream
    * @throws IOException if an I/O error occurs
    */
   protected abstract InputStream openPrivateKeyStream(String id)
-      throws IOException;
+      throws FileNotFoundException, KeyStorageException, IOException;
 
   /**
    * Open an input stream to read the certificate associated with a private key.
@@ -136,10 +138,12 @@ public abstract class AbstractKeyPairStorage implements KeyPairStorage {
    * @return input stream
    * @throws FileNotFoundException if the given identifier does not refer to
    *    an existing certificate
+   * @throws KeyStorageException if an unexpected error occurs in opening the
+   *    stream
    * @throws IOException if an I/O error occurs
    */
   protected abstract InputStream openCertificateStream(String id)
-      throws IOException;
+      throws FileNotFoundException, KeyStorageException, IOException;
 
   /**
    * Open an input stream to read the CA certificates associated with a
@@ -148,9 +152,11 @@ public abstract class AbstractKeyPairStorage implements KeyPairStorage {
    * @return input stream
    * @throws FileNotFoundException if the given identifier does not refer to
    *    an existing certificate chain
+   * @throws KeyStorageException if an unexpected error occurs in opening the
+   *    stream
    * @throws IOException if an I/O error occurs
    */
   protected abstract InputStream openCACertificateStream(String id)
-      throws IOException;
+      throws FileNotFoundException, KeyStorageException, IOException;
 
 }
