@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 import org.soulwing.s2ks.spi.KeyStorageProvider;
@@ -45,8 +46,26 @@ public final class KeyStorageLocator {
    */
   public static KeyStorage getInstance(String provider, Properties properties)
       throws NoSuchProviderException, ProviderConfigurationException {
+    return getInstance(provider, properties,
+        () -> ServiceLoader.load(KeyStorageProvider.class));
+  }
+
+  /**
+   * Gets a new key storage instance from the specified provider.
+   * @param loader a supplier for a service loader
+   * @param provider provider name; e.g. {@code LOCAL}
+   * @param properties provider-defined configuration properties
+   * @return key storage instance
+   * @throws NoSuchProviderException if there exists no provider with the
+   *    given name
+   * @throws ProviderConfigurationException if the provider reports an
+   *    error in creating and configuring the storage instance
+   */
+  public static KeyStorage getInstance(String provider, Properties properties,
+      Supplier<ServiceLoader<KeyStorageProvider>> loader)
+      throws NoSuchProviderException, ProviderConfigurationException {
     try {
-      return getProviderInstance(p -> p.getName().equals(provider))
+      return getProviderInstance(loader, p -> p.getName().equals(provider))
           .orElseThrow(() -> new NoSuchProviderException(provider))
           .getInstance(properties);
     }
@@ -68,8 +87,27 @@ public final class KeyStorageLocator {
   public static MutableKeyStorage getMutableInstance(
       String provider, Properties properties)
       throws NoSuchProviderException, ProviderConfigurationException {
+    return getMutableInstance(provider, properties,
+        () -> ServiceLoader.load(KeyStorageProvider.class));
+  }
+
+  /**
+   * Gets a new mutable key storage instance from the specified provider.
+   * @param loader a supplier for a service loader
+   * @param provider provider name; e.g. {@code LOCAL}
+   * @param properties provider-defined configuration properties
+   * @return key storage instance
+   * @throws NoSuchProviderException if there exists no provider with the
+   *    given name that supports the mutable interface
+   * @throws ProviderConfigurationException if the provider reports an
+   *    error in creating and configuring the storage instance
+   */
+  public static MutableKeyStorage getMutableInstance(
+      String provider, Properties properties,
+      Supplier<ServiceLoader<KeyStorageProvider>> loader)
+      throws NoSuchProviderException, ProviderConfigurationException {
     try {
-      return (MutableKeyStorage) getProviderInstance(
+      return (MutableKeyStorage) getProviderInstance(loader,
               p -> p.getName().equals(provider) && p.isMutable())
           .orElseThrow(() -> new NoSuchProviderException(provider))
           .getInstance(properties);
@@ -81,13 +119,15 @@ public final class KeyStorageLocator {
 
   /**
    * Finds a registered service provider
+   * @param loader a supplier for a service loader
    * @param predicate predicate to use to match a provider
    * @return optional first matching provider
    */
   private static Optional<KeyStorageProvider> getProviderInstance(
+      Supplier<ServiceLoader<KeyStorageProvider>> loader,
       Predicate<KeyStorageProvider> predicate) {
     return StreamSupport.stream(
-        ServiceLoader.load(KeyStorageProvider.class).spliterator(), false)
+        loader.get().spliterator(), false)
         .filter(predicate)
         .findFirst();
   }

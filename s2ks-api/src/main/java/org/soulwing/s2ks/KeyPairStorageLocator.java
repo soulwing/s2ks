@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 import org.soulwing.s2ks.spi.KeyPairStorageProvider;
@@ -43,11 +44,30 @@ public final class KeyPairStorageLocator {
    * @throws ProviderConfigurationException if the provider reports an
    *    error in creating and configuring the storage instance
    */
-  public static KeyPairStorage getInstance(String provider,
-      Properties configuration) throws NoSuchProviderException,
-      ProviderConfigurationException {
+  public static KeyPairStorage getInstance(
+      String provider, Properties configuration)
+      throws NoSuchProviderException, ProviderConfigurationException {
+    return getInstance(provider, configuration,
+        () -> ServiceLoader.load(KeyPairStorageProvider.class));
+  }
+
+  /**
+   * Gets a new key pair storage instance from the specified provider.
+   * @param provider provider name; e.g. {@code LOCAL}
+   * @param configuration configuration properties
+   * @param loader a supplier for a service loader
+   * @return key pair storage instance
+   * @throws NoSuchProviderException if there exists no provider with the
+   *    given name
+   * @throws ProviderConfigurationException if the provider reports an
+   *    error in creating and configuring the storage instance
+   */
+  public static KeyPairStorage getInstance(
+      String provider, Properties configuration,
+      Supplier<ServiceLoader<KeyPairStorageProvider>> loader)
+      throws NoSuchProviderException, ProviderConfigurationException {
     try {
-      return getProviderInstance(p -> p.getName().equals(provider))
+      return getProviderInstance(loader, p -> p.getName().equals(provider))
           .orElseThrow(() -> new NoSuchProviderException(provider))
           .getInstance(configuration);
     }
@@ -60,14 +80,16 @@ public final class KeyPairStorageLocator {
   }
 
   /**
-   * Finds a registered service provider
+   * Finds a registered service provider.
+   * @param loader a supplier for a service loader
    * @param predicate predicate to use to match a provider
    * @return optional first matching provider
    */
   private static Optional<KeyPairStorageProvider> getProviderInstance(
+      Supplier<ServiceLoader<KeyPairStorageProvider>> loader,
       Predicate<KeyPairStorageProvider> predicate) {
     return StreamSupport.stream(
-        ServiceLoader.load(KeyPairStorageProvider.class).spliterator(), false)
+        loader.get().spliterator(), false)
         .filter(predicate)
         .findFirst();
   }
