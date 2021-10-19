@@ -12,10 +12,10 @@ at runtime. I considered simply using the standard Java `KeyStore` but
 I found there were several limitations and assumptions that made it pretty 
 impractical for my needs.
 
-I wanted a simple key storage API, which would allow me to store
+I wanted a simple key storage API that would allow me to store
 and retrieve keys (Java type `Key`) using a string identifier 
-(e.g. a `kid` from the header of a JWT). I wanted something that could
-be backed by a filesystem, cloud storage (e.g. AWS S3), or even a database. 
+(e.g. a `kid` from the header of a JSON Web Token). I wanted something that 
+could be backed by a filesystem, cloud storage (e.g. AWS S3), or even a database. 
 I wanted to be able to store either private keys for asymmetric cryptography 
 (e.g. RSA or EC keys) or secret keys for symmetric cryptography. I wanted to 
 be able to easily store newly generated keys at runtime to support things 
@@ -47,18 +47,18 @@ Getting Started
   <dependency>
     <groupId>org.soulwing.s2ks</groupId>
     <artifactId>s2ks-api</artifactId>
-    <version>1.0.0-SNAPSHOT</version>  
+    <version>1.3.1</version>  
   </dependency>
   <dependency>
     <groupId>org.soulwing.s2ks</groupId>
     <artifactId>s2ks-impl</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.3.1</version>
     <scope>runtime</scope>  
   </dependency>
   <dependency>  <!-- needed only if you want to use the AWS KeyStorage provider -->
     <groupId>org.soulwing.s2ks</groupId>
     <artifactId>s2ks-aws</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.3.1</version>
     <scope>runtime</scope>  
   </dependency>
 </dependencies>
@@ -97,7 +97,7 @@ class Demo {
 ```
 
 After running the demo, you should see a file named `some-key-id.pem` in the
-directory you used for the `storageDirectory` property. If you looking in that 
+directory you used for the `storageDirectory` property. If you look in that 
 file, you'll see something like the following.
 
 ```text
