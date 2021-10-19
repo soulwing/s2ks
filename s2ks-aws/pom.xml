@@ -108,7 +108,7 @@
   </dependencies>
 
   <properties>
-    <version.com.amazonaws>1.11.515</version.com.amazonaws>
+    <version.com.amazonaws>1.12.90</version.com.amazonaws>
   </properties>
 
 </project>
