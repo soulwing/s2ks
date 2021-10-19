@@ -113,7 +113,7 @@ class JcaPublicKeyFactory implements PublicKeyFactory {
         throws NoSuchAlgorithmException, InvalidKeySpecException {
 
       final ECPrivateKey ecKey = (ECPrivateKey) privateKey;
-      final ECParameterSpec bcSpec = EC5Util.convertSpec(ecKey.getParams(), false);
+      final ECParameterSpec bcSpec = EC5Util.convertSpec(ecKey.getParams());
       final ECPoint q = bcSpec.getG().multiply(ecKey.getS());
       final ECPoint bcW = bcSpec.getCurve().decodePoint(q.getEncoded(false));
       java.security.spec.ECPoint w = new java.security.spec.ECPoint(
