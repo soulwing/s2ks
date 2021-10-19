@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.soulwing</groupId>
     <artifactId>soulwing-parent</artifactId>
-    <version>14</version>
+    <version>20</version>
   </parent>
 
   <groupId>org.soulwing.s2ks</groupId>
@@ -41,6 +41,19 @@
     <url>https://github.com/soulwing/${project.artifactId}</url>
     <tag>HEAD</tag>
   </scm>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <source>8</source>
+          <detectJavaApiLink>false</detectJavaApiLink>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
   <dependencyManagement>
     <dependencies>
