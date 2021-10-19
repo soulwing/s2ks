@@ -53,7 +53,7 @@ public abstract class AbstractKeyPairStorage implements KeyPairStorage {
   public KeyPairInfo retrieveKeyPair(String id) throws KeyStorageException {
     char[] password = null;
     try {
-      password = getPassword();
+      password = getPassword(id);
       return KeyPairInfo.builder()
           .id(id)
           .privateKey(loadPrivateKey(id, password))
@@ -115,8 +115,9 @@ public abstract class AbstractKeyPairStorage implements KeyPairStorage {
    * @return password
    * @throws KeyStorageException if some other unexpected error occurs
    * @throws IOException if an I/O error occurs
+   * @param id ID of the s
    */
-  protected abstract char[] getPassword()
+  protected abstract char[] getPassword(String id)
       throws KeyStorageException, IOException;
 
   /**

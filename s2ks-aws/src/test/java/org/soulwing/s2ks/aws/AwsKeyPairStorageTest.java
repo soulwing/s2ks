@@ -78,6 +78,9 @@ public class AwsKeyPairStorageTest {
   private static final String PREFIX = "prefix";
   private static final String PASSWORD = "password";
 
+  private static final String AWS_KEY_PAIR_ID = "key-pair-1";
+  private static final String AWS_PREFIX = "token-issuer/keys/access-token";
+
   private static KeyPair keyPair;
 
   @Rule
@@ -309,9 +312,11 @@ public class AwsKeyPairStorageTest {
         (System.getenv("AWS_PROFILE") != null
             || System.getProperty("aws.profile") != null)
         && System.getenv("SECRET_ID") != null
-        && System.getenv("S3_BUCKET_NAME") != null);
+        && System.getenv("S3_BUCKET_NAME") != null
+        && System.getenv("S3_PREFIX") != null
+        && System.getenv("KEY_PAIR_ID") != null);
 
-    final String keyId = "850babf4-4f3a-11e9-8b1a-4c327590ca07";
+    final String keyId = System.getenv("KEY_PAIR_ID");
 
     final AwsKeyPairStorage storage = new AwsKeyPairStorage(
         BcEncryptedPrivateKeyLoader.getInstance(),
@@ -320,7 +325,7 @@ public class AwsKeyPairStorageTest {
         AmazonS3ClientBuilder.standard().build(),
         System.getenv("SECRET_ID"),
         System.getenv("S3_BUCKET_NAME"),
-        "keys/access-token");
+        System.getenv("S3_PREFIX"));
 
     final KeyPairInfo kpi = storage.retrieveKeyPair(keyId);
     assertThat(kpi.getId(), is(equalTo(keyId)));

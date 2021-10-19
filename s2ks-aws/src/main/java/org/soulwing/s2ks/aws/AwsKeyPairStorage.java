@@ -73,7 +73,7 @@ class AwsKeyPairStorage extends AbstractKeyPairStorage {
   }
 
   @Override
-  protected char[] getPassword() throws KeyStorageException {
+  protected char[] getPassword(String id) throws KeyStorageException {
     final GetSecretValueResult result = getSecretValue();
 
     // FIXME: using a JSON-P reader puts the password onto the heap in a string
@@ -81,13 +81,23 @@ class AwsKeyPairStorage extends AbstractKeyPairStorage {
     // that allows string values to be copied into a character array which
     // can be subsequently wiped
 
-    final JsonObject object =
+    final JsonObject secret =
         Json.createReader(new StringReader(result.getSecretString())).readObject();
 
-    final String password = object.getString(PASSWORD_KEY, null);
+    return getPassword(id, secret);
+  }
+
+  private char[] getPassword(String id, JsonObject secret)
+      throws KeyStorageException {
+    // if there's a secret for the given key ID, use it
+    final JsonObject keySecret = secret.getJsonObject(id);
+    if (keySecret != null) {
+      secret = keySecret;
+    }
+    final String password = secret.getString(PASSWORD_KEY, null);
     if (password == null) {
-      throw new KeyStorageException("secret does not contain `"
-          + PASSWORD_KEY + "` key");
+      throw new KeyStorageException("secret for key `" + id
+          + "` does not contain `" + PASSWORD_KEY + "` key");
     }
     return password.toCharArray();
   }

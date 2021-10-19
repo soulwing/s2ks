@@ -55,7 +55,7 @@ class LocalKeyPairStorage extends AbstractKeyPairStorage {
   }
 
   @Override
-  protected char[] getPassword() throws IOException {
+  protected char[] getPassword(String id) throws IOException {
     if (password != null) {
       return Arrays.copyOf(password.toCharArray(), password.length());
     }
