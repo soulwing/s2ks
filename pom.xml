@@ -28,7 +28,7 @@
 
   <groupId>org.soulwing.s2ks</groupId>
   <artifactId>s2ks</artifactId>
-  <version>1.3.0</version>
+  <version>1.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>S2KS: Simple Secure Key Storage</name>
@@ -39,7 +39,7 @@
     <connection>scm:git:git@github.com:soulwing/${project.artifactId}.git</connection>
     <developerConnection>${project.scm.connection}</developerConnection>
     <url>https://github.com/soulwing/${project.artifactId}</url>
-    <tag>1.3.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <build>
